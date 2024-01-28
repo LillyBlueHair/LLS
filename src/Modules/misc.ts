@@ -63,15 +63,12 @@ export class MiscModule extends BaseModule {
 		if(!script) return;
 		script.Property = script.Property || {};
 		if (mode === "bodyOnly") {
-			console.log("bodyOnly")
 			script.Property.Hide = AssetGroup
 				.filter(g => g.Category === "Appearance" && !g.Clothing && !["Height", "Emoticon", "Pronouns"]
 				.includes(g.Name)).map(g => g.Name);
-		} else if (mode === "all") {
-			console.log("hiding")
+		} else if (mode === "all") { 
 			script.Property.Hide = AssetGroup.map(g => g.Name).filter(gn => gn !== "ItemScript")
 		} else {
-			console.log("showing")
 			InventoryRemove(C, "ItemScript", true);
 		}
 	

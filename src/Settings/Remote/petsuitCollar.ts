@@ -1,13 +1,13 @@
 import { RemoteGuiSubscreen } from "./remoteBase";
 import { Setting } from "Settings/settingBase";
 import { GetDelimitedList } from "utils";
-import { PetsuitCollarModel, ArtifactPublicSettingsModel } from "Settings/Models/artifacts";
+import { PetsuitCollarModel, ArtifactPublicSettingsModel, PetsuitCollarSettingsModel } from "Settings/Models/artifacts";
 
-export class RemoteArtifacts extends RemoteGuiSubscreen {
+export class RemotePetsuitCollar extends RemoteGuiSubscreen {
 	subscreens: RemoteGuiSubscreen[] = [];
 
 	get name(): string {
-		return "Artifacts";
+		return "Petsuit Collar";
 	}
 
 	get allowedMemberIds(): number[] {
@@ -31,6 +31,8 @@ export class RemoteArtifacts extends RemoteGuiSubscreen {
 			memberIdIsAllowed = this.allowedMemberIds.indexOf(Player.MemberNumber!) > -1;
 
 		if (!memberIdIsAllowed) return "You do not have access to their artifacts...";
+		else if (!this.settings.petsuitCollarSetting.remoteAccess) return "Remote Access is Disabled";
+		else if (!this.settings.petsuitCollarSetting.enabled) return "Section is Disabled";
 		else return "Section is Unavailable";
 	}
 
@@ -39,7 +41,6 @@ export class RemoteArtifacts extends RemoteGuiSubscreen {
 		if (this.allowedMemberIds.length > 0)
 			memberIdIsAllowed = this.allowedMemberIds.indexOf(Player.MemberNumber!) > -1;
 		
-
 		return this.settings.petsuitCollarSetting.remoteAccess && this.settings.petsuitCollarSetting.enabled && memberIdIsAllowed;
 	}
 
@@ -56,11 +57,20 @@ export class RemoteArtifacts extends RemoteGuiSubscreen {
 			[
 				<Setting>{
 					type: "colorpicker",
-					id: "petsuitCollar_color",
+					id: "petsuitCollar_buckleColor",
 					label: "Petsuit Buckle Color:",
 					description: "Sets the color of the buckles on the petsuit.",
 					setting: () => this.settings.petsuitCollarSetting.buckleColor ?? "#5AC5EE",
 					setSetting: (val) => (this.settings.petsuitCollarSetting.buckleColor = val),
+					disabled: !this.settings.petsuitCollarSetting.enabled,
+				},
+				<Setting>{
+					type: "colorpicker",
+					id: "petsuitCollar_strapColor",
+					label: "Petsuit Strap Color:",
+					description: "Sets the color of the straps on the petsuit.",
+					setting: () => this.settings.petsuitCollarSetting.strapColor ?? "#2C2C2C",
+					setSetting: (val) => (this.settings.petsuitCollarSetting.strapColor = val),
 					disabled: !this.settings.petsuitCollarSetting.enabled,
 				},
 				<Setting>{
@@ -75,7 +85,7 @@ export class RemoteArtifacts extends RemoteGuiSubscreen {
 					type: "text",
 					id: "petsuitCollar_allowedMembers",
 					label: "Allowed Member IDs:",
-					description: "A list of member IDs seperated by a commar, who are allowed to use the collar.",
+					description: "A list of member IDs seperated by a comma, who are allowed to use the collar.",
 					setting: () => this.settings.petsuitCollarSetting.allowedMembers ?? "",
 					setSetting: (val) => (this.settings.petsuitCollarSetting.allowedMembers = val),
 					disabled: !this.settings.petsuitCollarSetting.enabled,
@@ -113,7 +123,15 @@ export class RemoteArtifacts extends RemoteGuiSubscreen {
 					setSetting: (val) => (this.settings.petsuitCollarSetting.locked = val),
 					disabled: !this.settings.petsuitCollarSetting.enabled || !this.settings.petsuitCollarSetting.lockable,
 				},
-			],
+			],/*[
+				<Setting>{
+					type: "checkbox",
+					label: "Catspeech mask enabled:",
+					description: "Enables the catspeech mask.",
+					setting: () => this.settings.catSpeechEnabled ?? false,
+					setSetting: (val) => (this.settings.catSpeechEnabled = val)
+				},
+			]*/
 		];
 	}
 

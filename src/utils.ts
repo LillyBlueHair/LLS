@@ -234,7 +234,7 @@ export function OnWhisper(priority: number, module: ModuleCategory, callback: (d
         var data = args[0];
 		var sender = getChatroomCharacter(data.Sender);
         if (data.Type == "Whisper")
-            if(callback(data, sender, data.Content, data.Dictionary) == "skipBCX"){
+            if(callback(data, sender, data.Content, data.Dictionary) == "skipBCX"){ //EWW, but it works
 				return;
 			}
 		next(args);
@@ -273,6 +273,15 @@ export function OnActivity(priority: any, module: ModuleCategory, callback: (dat
     }, module);
 }
 
+export function OnSentMessage(priority: any, module: ModuleCategory, callback: (data: any, sender: Character | null, msg: string, metadata: any) => void) {
+	hookFunction("ServerSend", priority, (args, next) => {
+		var data = args[1];
+		var sender = getChatroomCharacter(data.Sender);
+		if (args[0] === "ChatRoomChat")
+			callback(data, sender, data.Content, data.Dictionary);
+		next(args);
+	}, module);
+}
 
 
 export function hookFunction(target: string, priority: number, hook: PatchHook, module: ModuleCategory | null = null): () => void {
@@ -412,3 +421,4 @@ export function escapeRegExp(string: string) {
 /*export function hookLSCGMagic(trigger: "curseTrigger", listener: (v: { action: "remove" | "add" | "swap" | "update" | "color" | "autoremove"; group: string; }) => void){
 	window.LSCG?.getModApi("LLS").on?.(trigger, listener);
 }*/
+

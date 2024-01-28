@@ -30,11 +30,20 @@ export class GuiArtifact extends GuiSubscreen {
 				},
 				<Setting>{
 					type: "colorpicker",
-					id: "petsuitCollar_color",
+					id: "petsuitCollar_buckleColor",
 					label: "Petsuit Buckle Color:",
 					description: "Sets the color of the buckles on the petsuit.",
 					setting: () => this.settings.petsuitCollarSetting.buckleColor ?? "#5AC5EE",
 					setSetting: (val) => (this.settings.petsuitCollarSetting.buckleColor = val),
+					disabled: !this.settings.petsuitCollarSetting.enabled || this.settings.petsuitCollarSetting.locked,
+				},
+				<Setting>{
+					type: "colorpicker",
+					id: "petsuitCollar_strapColor",
+					label: "Petsuit Strap Color:",
+					description: "Sets the color of the straps on the petsuit.",
+					setting: () => this.settings.petsuitCollarSetting.strapColor ?? "#2C2C2C",
+					setSetting: (val) => (this.settings.petsuitCollarSetting.strapColor = val),
 					disabled: !this.settings.petsuitCollarSetting.enabled || this.settings.petsuitCollarSetting.locked,
 				},
 				<Setting>{
@@ -50,7 +59,7 @@ export class GuiArtifact extends GuiSubscreen {
 					id: "petsuitCollar_allowedMembers",
 					label: "Allowed Member IDs:",
 					description:
-						"A list of member IDs seperated by a commar, who are allowed to use the collar.",
+						"A list of member IDs seperated by a comma, who are allowed to use the collar.",
 					setting: () => this.settings.petsuitCollarSetting.allowedMembers ?? "",
 					setSetting: (val) => (this.settings.petsuitCollarSetting.allowedMembers = val),
 					disabled: !this.settings.petsuitCollarSetting.enabled || this.settings.petsuitCollarSetting.locked,
@@ -100,19 +109,12 @@ export class GuiArtifact extends GuiSubscreen {
 			[
 				<Setting>{
 					type: "checkbox",
-					label: "Enable Rope of Selftightening:",
-					description: "Enables the rope of selftightening.",
-					setting: () => this.settings.ropeOfTighteningEnabled ?? false,
-					setSetting: (val) => (this.settings.ropeOfTighteningEnabled = val),
-				},
-				<Setting>{
-					type: "checkbox",
-					label: "(TEST) Enable Rope of Selftightening - Room:",
-					description: "Enables the rope of tightening for the entire room TESTING ONLY - DANGEROUS IF MULTIPLE INSTANCES AT ONCE.",
-					setting: () => this.settings.publicRopeOfTighteningEnabled ?? false,
-					setSetting: (val) => (this.settings.publicRopeOfTighteningEnabled = val),
-				}
-			],
+					label: "Catmask speech:",
+					description: "Forces the wearer to speek like a cat when wearing a cat mask.",
+					setting: () => this.settings.catSpeechEnabled ?? false,
+					setSetting: (val) => (this.settings.catSpeechEnabled = val),
+				},				
+			]
 		];
 	}
 

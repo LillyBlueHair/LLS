@@ -2,7 +2,7 @@ import { getModule } from "modules";
 import { RemoteUiModule } from "Modules/remoteUi";
 import { RemoteGuiSubscreen } from "./remoteBase";
 import { GuiSubscreen } from "Settings/settingBase";
-import { RemoteArtifacts } from "./artifacts";
+import { RemotePetsuitCollar } from "./petsuitCollar";
 import { ArtifactModule } from "Modules/artifacts";
 
 export class RemoteMainMenu extends RemoteGuiSubscreen {
@@ -32,7 +32,7 @@ export class RemoteMainMenu extends RemoteGuiSubscreen {
 
 	Load(): void {
 		this.subscreens = [
-            new RemoteArtifacts(getModule<ArtifactModule>("ArtifactModule"), this.Character)
+            new RemotePetsuitCollar(getModule<ArtifactModule>("ArtifactModule"), this.Character)
 		];
 	}
 

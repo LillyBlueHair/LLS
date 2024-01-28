@@ -280,7 +280,7 @@ var LLS = (function (exports) {
 	        var data = args[0];
 	        var sender = getChatroomCharacter(data.Sender);
 	        if (data.Type == "Whisper")
-	            if (callback(data, sender, data.Content, data.Dictionary) == "skipBCX") {
+	            if (callback(data, sender, data.Content, data.Dictionary) == "skipBCX") { //EWW, but it works
 	                return;
 	            }
 	        next(args);
@@ -312,6 +312,15 @@ var LLS = (function (exports) {
 	        if (data.Type == "Activity") {
 	            callback(data, sender, data.Content, data.Dictionary);
 	        }
+	        next(args);
+	    }, module);
+	}
+	function OnSentMessage(priority, module, callback) {
+	    hookFunction("ServerSend", priority, (args, next) => {
+	        var data = args[1];
+	        var sender = getChatroomCharacter(data.Sender);
+	        if (args[0] === "ChatRoomChat")
+	            callback(data, sender, data.Content, data.Dictionary);
 	        next(args);
 	    }, module);
 	}
@@ -535,6 +544,7 @@ var LLS = (function (exports) {
 	            ropeOfTighteningEnabled: false,
 	            publicRopeOfTighteningEnabled: false,
 	            ropeOfTightening: {},
+	            catSpeechEnabled: false,
 	            petsuitCollarSetting: {
 	                enabled: false,
 	                remoteAccess: false,
@@ -546,6 +556,7 @@ var LLS = (function (exports) {
 	                lockOwner: false,
 	                locked: false,
 	                buckleColor: "",
+	                strapColor: "",
 	                petsuitCollar: { name: "", creator: 0 },
 	                ropeOfTighteningEnabled: false,
 	                publicRopeOfTighteningEnabled: false,
@@ -1243,26 +1254,27 @@ var LLS = (function (exports) {
 	                Description: ": Opens the help for LLS commands",
 	                Action: (args, msg, parsed) => {
 	                    let helpLines = [];
-	                    this.orderedCommands.forEach(c => {
+	                    this.orderedCommands.forEach((c) => {
 	                        helpLines.push(`<br><b>/lls ${c.Tag}</b> ${c.Description}`);
 	                    });
 	                    let helpText = `<b>- Lillys Little Scrips -</b><br>${helpLines.join()}<br>`;
 	                    LLS_SendLocal(helpText);
-	                }
-	            }, {
+	                },
+	            },
+	            {
 	                Tag: "cards",
 	                Description: ": Card deck commands",
 	                Action: (args, msg, parsed) => {
-	                    if (parsed.length == 1) {
+	                    if (parsed.length != 0) {
+	                        let number = 1;
+	                        let target;
 	                        switch (parsed[0].toLowerCase()) {
 	                            case "shuffle":
 	                                this.cards.shuffleDeck();
 	                                break;
-	                        }
-	                    }
-	                    else if (parsed.length == 2) {
-	                        let target;
-	                        switch (parsed[0].toLowerCase()) {
+	                            case "log":
+	                                this.cards.printLog(false);
+	                                break;
 	                            case "deal":
 	                                if (/^[0-9]+$/.test(parsed[1])) {
 	                                    target = Number.parseInt(parsed[1], 10);
@@ -1270,7 +1282,22 @@ var LLS = (function (exports) {
 	                                else {
 	                                    target = getCharacterNumber(parsed[1]);
 	                                }
-	                                this.cards.dealCard(target);
+	                                if (parsed[2] && /^[0-9]+$/.test(parsed[2])) {
+	                                    number = Number.parseInt(parsed[2], 10);
+	                                }
+	                                this.cards.dealCards(target, number, false);
+	                                break;
+	                            case "dealopen":
+	                                if (/^[0-9]+$/.test(parsed[1])) {
+	                                    target = Number.parseInt(parsed[1], 10);
+	                                }
+	                                else {
+	                                    target = getCharacterNumber(parsed[1]);
+	                                }
+	                                if (parsed[2] && /^[0-9]+$/.test(parsed[2])) {
+	                                    number = Number.parseInt(parsed[2], 10);
+	                                }
+	                                this.cards.dealCards(target, number, true);
 	                                break;
 	                            case "log":
 	                                if (parsed[1] == "public")
@@ -1279,16 +1306,20 @@ var LLS = (function (exports) {
 	                                    this.cards.printLog(true);
 	                                else
 	                                    LLS_SendLocal("Wrong usage");
+	                                break;
 	                        }
 	                    }
 	                    else {
 	                        let text = "<br><b>/lls cards shuffle</b>: Shuffles the deck" +
-	                            "<br><b>/lls cards deal (player) </b>: Deals a card to the player" +
-	                            "<br><b>/lls cards log (private/public) </b>: Prints the log";
+	                            "<br><b>/lls cards deal (player) [number]</b>: Deals [number] cards to the player face down. No number means 1" +
+	                            "<br><b>/lls cards dealopen (player) [number]</b>: Deals [number] cards to the player face up. No number means 1" +
+	                            "<br><b>/lls cards log (private/public) </b>: Prints the log" +
+	                            "<br><b>/lls cards show </b>: Deals an open card";
 	                        LLS_SendLocal(`<b>- Lillys Little Scrips -</b><br>Cards: ${text}<br>`);
 	                    }
-	                }
-	            }, {
+	                },
+	            },
+	            {
 	                Tag: "visibility",
 	                Description: ": Change the visibility of your character",
 	                Action: (args, msg, parsed) => {
@@ -1312,22 +1343,26 @@ var LLS = (function (exports) {
 	                            "<br><b>/lls visibility clothes</b>: Only shows your clothes";
 	                        LLS_SendLocal(`<b>- Lillys Little Scrips -</b><br>Visibility: ${text}<br>`);
 	                    }
-	                }
-	            }
+	                },
+	            },
 	        ];
 	    }
-	    get cards() { return getModule("CardsModule"); }
-	    get misc() { return getModule("MiscModule"); }
+	    get cards() {
+	        return getModule("CardsModule");
+	    }
+	    get misc() {
+	        return getModule("MiscModule");
+	    }
 	    get orderedCommands() {
 	        var helpCommand = this.getSubcommand("help");
-	        var sorted = this.llsCommands.filter(c => c.Tag != "help").sort((a, b) => a.Tag.localeCompare(b.Tag));
+	        var sorted = this.llsCommands.filter((c) => c.Tag != "help").sort((a, b) => a.Tag.localeCompare(b.Tag));
 	        return [helpCommand, ...sorted];
 	    }
 	    get subCommands() {
-	        return this.orderedCommands.map(c => c.Tag);
+	        return this.orderedCommands.map((c) => c.Tag);
 	    }
 	    getSubcommand(name) {
-	        return this.llsCommands.find(c => c.Tag.toLocaleLowerCase() == name.toLocaleLowerCase());
+	        return this.llsCommands.find((c) => c.Tag.toLocaleLowerCase() == name.toLocaleLowerCase());
 	    }
 	    getCharacterByNicknameOrMemberNumber(target) {
 	        target = target.toLocaleLowerCase();
@@ -1335,17 +1370,16 @@ var LLS = (function (exports) {
 	        if (CommonIsNumeric(target))
 	            targetC = getChatroomCharacter(target);
 	        if (!targetC) {
-	            targetC = ChatRoomCharacter.find(c => CharacterNickname(c).toLocaleLowerCase() == target);
+	            targetC = ChatRoomCharacter.find((c) => CharacterNickname(c).toLocaleLowerCase() == target);
 	        }
 	        return targetC;
 	    }
 	    load() {
 	        CommandCombine([
 	            {
-	                Tag: 'lls',
+	                Tag: "lls",
 	                Description: "or <b>/lls help</b> : Opens the help for LLS commands",
-	                AutoComplete(parsed, low, msg) {
-	                },
+	                AutoComplete(parsed, low, msg) { },
 	                Action: (args, msg, parsed) => {
 	                    if (parsed.length <= 0) {
 	                        this.getSubcommand("help").Action("", msg, []);
@@ -1355,8 +1389,8 @@ var LLS = (function (exports) {
 	                        var subArgs = parsed.slice(1);
 	                        command === null || command === void 0 ? void 0 : command.Action(subArgs.join(" "), msg, subArgs);
 	                    }
-	                }
-	            }
+	                },
+	            },
 	        ]);
 	    }
 	    unload() {
@@ -1373,8 +1407,8 @@ var LLS = (function (exports) {
 	    }
 	}
 
-	let cardDeck = [];
-	let dealersLog = new Map;
+	let cardDeck = ([] = []);
+	let dealersLog = new Map();
 	class CardsModule extends BaseModule {
 	    shuffleDeck() {
 	        cardDeck = [];
@@ -1383,14 +1417,14 @@ var LLS = (function (exports) {
 	        const cardRanks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
 	        cardSuits.forEach((suit) => {
 	            cardRanks.forEach((rank) => {
-	                cardDeck.push(rank + suit);
+	                cardDeck.push([rank, suit]);
 	            });
 	        });
 	        shuffleArray(cardDeck);
-	        SendActivityMessage(`The dealer took the remaining ${cardDeck.length} cards from the deck and shuffled all cards for a new deck.`);
+	        SendActivityMessage(`${Player.Nickname ? Player.Nickname : Player.Name} took the remaining ${cardDeck.length} cards from the deck and shuffled all cards for a new deck.`);
 	    }
-	    dealCard(target) {
-	        console.log(target);
+	    dealCard(target = null, open = false) {
+	        var _a, _b;
 	        if (cardDeck.length === 0) {
 	            this.shuffleDeck();
 	        }
@@ -1398,29 +1432,93 @@ var LLS = (function (exports) {
 	        if (!card)
 	            return;
 	        if (target) {
-	            SendActivityMessage(`The dealer dealt you this card face down: ${card}`, target);
-	            if (dealersLog.has(target)) {
-	                dealersLog.set(target, dealersLog.get(target) + ", " + card);
+	            if (open) {
+	                SendActivityMessage(`${Player.Nickname ? Player.Nickname : Player.Name} dealt this card openly to ${getCharacterName(target, "unknown")}: ${card.join("")}`);
+	                if (dealersLog.has(target)) {
+	                    (_a = dealersLog.get(target)) === null || _a === void 0 ? void 0 : _a.push(card);
+	                }
+	                else {
+	                    dealersLog.set(target, new Array(card));
+	                }
 	            }
 	            else {
-	                dealersLog.set(target, card);
+	                SendActivityMessage(`${Player.Nickname ? Player.Nickname : Player.Name} dealt you this card face down: ${card.join("")}`, target);
+	                if (dealersLog.has(target)) {
+	                    (_b = dealersLog.get(target)) === null || _b === void 0 ? void 0 : _b.push(card);
+	                }
+	                else {
+	                    dealersLog.set(target, new Array(card));
+	                }
 	            }
 	        }
 	        else {
-	            SendActivityMessage(`The dealer openly drew this card face up: ${card}`, target);
+	            SendActivityMessage(`${Player.Nickname ? Player.Nickname : Player.Name} openly drew this card face up: ${card.join("")}`, target);
 	        }
 	    }
-	    dealCards(numberOfCards, targets) {
-	        for (const target of targets !== null && targets !== void 0 ? targets : [null]) {
+	    dealCards(targets, numberOfCards, open = false) {
+	        if (!targets) {
+	        }
+	        if (typeof targets === "number") {
+	            const target = targets;
 	            for (let i = 0; i < numberOfCards; i++) {
-	                this.dealCard(target);
+	                this.dealCard(target, open);
+	            }
+	        }
+	        if (Array.isArray(targets)) {
+	            for (const target of targets !== null && targets !== void 0 ? targets : [null]) {
+	                for (let i = 0; i < numberOfCards; i++) {
+	                    this.dealCard(target, open);
+	                }
 	            }
 	        }
 	    }
 	    printLog(priv) {
 	        let message = "";
 	        for (let [key, value] of dealersLog) {
-	            message = message.concat("\n", getCharacterName(key, "unknown"), ": ", value);
+	            message = message.concat("\n", getCharacterName(key, "unknown"), ": ");
+	            value
+	                .sort((a, b) => {
+	                if (a[1] < b[1])
+	                    return -1;
+	                if (a[1] > b[1])
+	                    return 1;
+	                if (Number(a[0])) {
+	                    if (Number(b[0])) {
+	                        return Number(a[0]) - Number(b[0]);
+	                    }
+	                    return -1;
+	                }
+	                else if (Number(b[0])) {
+	                    return 1;
+	                }
+	                if (a[0] == "A") {
+	                    return 1;
+	                }
+	                else if (b[0] == "A") {
+	                    return -1;
+	                }
+	                if (a[0] == "K") {
+	                    return 1;
+	                }
+	                else if (b[0] == "K") {
+	                    return -1;
+	                }
+	                if (a[0] == "Q") {
+	                    return 1;
+	                }
+	                else if (b[0] == "Q") {
+	                    return -1;
+	                }
+	                if (a[0] == "J") {
+	                    return 1;
+	                }
+	                else if (b[0] == "J") {
+	                    return -1;
+	                }
+	                return 0;
+	            })
+	                .forEach((e) => (message += e.join("") + ", "));
+	            message = message.slice(0, -2);
 	        }
 	        if (priv) {
 	            LLS_SendLocal(message);
@@ -1533,17 +1631,14 @@ var LLS = (function (exports) {
 	            return;
 	        script.Property = script.Property || {};
 	        if (mode === "bodyOnly") {
-	            console.log("bodyOnly");
 	            script.Property.Hide = AssetGroup
 	                .filter(g => g.Category === "Appearance" && !g.Clothing && !["Height", "Emoticon", "Pronouns"]
 	                .includes(g.Name)).map(g => g.Name);
 	        }
 	        else if (mode === "all") {
-	            console.log("hiding");
 	            script.Property.Hide = AssetGroup.map(g => g.Name).filter(gn => gn !== "ItemScript");
 	        }
 	        else {
-	            console.log("showing");
 	            InventoryRemove(C, "ItemScript", true);
 	        }
 	        CharacterScriptRefresh(C);
@@ -1574,11 +1669,20 @@ var LLS = (function (exports) {
 	                },
 	                {
 	                    type: "colorpicker",
-	                    id: "petsuitCollar_color",
+	                    id: "petsuitCollar_buckleColor",
 	                    label: "Petsuit Buckle Color:",
 	                    description: "Sets the color of the buckles on the petsuit.",
 	                    setting: () => { var _a; return (_a = this.settings.petsuitCollarSetting.buckleColor) !== null && _a !== void 0 ? _a : "#5AC5EE"; },
 	                    setSetting: (val) => (this.settings.petsuitCollarSetting.buckleColor = val),
+	                    disabled: !this.settings.petsuitCollarSetting.enabled || this.settings.petsuitCollarSetting.locked,
+	                },
+	                {
+	                    type: "colorpicker",
+	                    id: "petsuitCollar_strapColor",
+	                    label: "Petsuit Strap Color:",
+	                    description: "Sets the color of the straps on the petsuit.",
+	                    setting: () => { var _a; return (_a = this.settings.petsuitCollarSetting.strapColor) !== null && _a !== void 0 ? _a : "#2C2C2C"; },
+	                    setSetting: (val) => (this.settings.petsuitCollarSetting.strapColor = val),
 	                    disabled: !this.settings.petsuitCollarSetting.enabled || this.settings.petsuitCollarSetting.locked,
 	                },
 	                {
@@ -1593,7 +1697,7 @@ var LLS = (function (exports) {
 	                    type: "text",
 	                    id: "petsuitCollar_allowedMembers",
 	                    label: "Allowed Member IDs:",
-	                    description: "A list of member IDs seperated by a commar, who are allowed to use the collar.",
+	                    description: "A list of member IDs seperated by a comma, who are allowed to use the collar.",
 	                    setting: () => { var _a; return (_a = this.settings.petsuitCollarSetting.allowedMembers) !== null && _a !== void 0 ? _a : ""; },
 	                    setSetting: (val) => (this.settings.petsuitCollarSetting.allowedMembers = val),
 	                    disabled: !this.settings.petsuitCollarSetting.enabled || this.settings.petsuitCollarSetting.locked,
@@ -1643,19 +1747,12 @@ var LLS = (function (exports) {
 	            [
 	                {
 	                    type: "checkbox",
-	                    label: "Enable Rope of Selftightening:",
-	                    description: "Enables the rope of selftightening.",
-	                    setting: () => { var _a; return (_a = this.settings.ropeOfTighteningEnabled) !== null && _a !== void 0 ? _a : false; },
-	                    setSetting: (val) => (this.settings.ropeOfTighteningEnabled = val),
+	                    label: "Catmask speech:",
+	                    description: "Forces the wearer to speek like a cat when wearing a cat mask.",
+	                    setting: () => { var _a; return (_a = this.settings.catSpeechEnabled) !== null && _a !== void 0 ? _a : false; },
+	                    setSetting: (val) => (this.settings.catSpeechEnabled = val),
 	                },
-	                {
-	                    type: "checkbox",
-	                    label: "(TEST) Enable Rope of Selftightening - Room:",
-	                    description: "Enables the rope of tightening for the entire room TESTING ONLY - DANGEROUS IF MULTIPLE INSTANCES AT ONCE.",
-	                    setting: () => { var _a; return (_a = this.settings.publicRopeOfTighteningEnabled) !== null && _a !== void 0 ? _a : false; },
-	                    setSetting: (val) => (this.settings.publicRopeOfTighteningEnabled = val),
-	                }
-	            ],
+	            ]
 	        ];
 	    }
 	    Run() {
@@ -1714,7 +1811,7 @@ var LLS = (function (exports) {
 	}
 
 	let petsuitActivated = false;
-	let clothesSafe = [];
+	let clothesSafe = "";
 	let disallowedItemsPetsuit = [
 	    "Bib",
 	    "LargeBelt",
@@ -1740,6 +1837,7 @@ var LLS = (function (exports) {
 	            ropeOfTighteningEnabled: false,
 	            publicRopeOfTighteningEnabled: false,
 	            ropeOfTightening: {},
+	            catSpeechEnabled: false,
 	            petsuitCollarSetting: {
 	                enabled: false,
 	                remoteAccess: false,
@@ -1751,6 +1849,7 @@ var LLS = (function (exports) {
 	                lockOwner: false,
 	                locked: false,
 	                buckleColor: "#5AC5EE",
+	                strapColor: "#2C2C2C",
 	                petsuitCollar: { name: "", creator: 0 },
 	            },
 	        };
@@ -1762,12 +1861,9 @@ var LLS = (function (exports) {
 	        OnChat(1, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
 	            var _a;
 	            let collarSettings = (_a = Player.LLS) === null || _a === void 0 ? void 0 : _a.ArtifactModule;
-	            if (!collarSettings ||
-	                !collarSettings.petsuitCollarSetting.enabled ||
-	                !collarSettings.petsuitCollarSetting.speechEnabled)
+	            if (!collarSettings || !collarSettings.petsuitCollarSetting.enabled || !collarSettings.petsuitCollarSetting.speechEnabled)
 	                return;
-	            if (isPhraseInString(msg.toLowerCase(), collarSettings.petsuitCollarSetting.trigger.toLowerCase()) &&
-	                this.WearingPetsuitCollar(Player)) {
+	            if (isPhraseInString(msg.toLowerCase(), collarSettings.petsuitCollarSetting.trigger.toLowerCase()) && this.WearingPetsuitCollar(Player)) {
 	                if ((sender === null || sender === void 0 ? void 0 : sender.IsPlayer()) && !collarSettings.petsuitCollarSetting.allowSelfTrigger)
 	                    return;
 	                else if (sender === null || sender === void 0 ? void 0 : sender.IsPlayer())
@@ -1797,6 +1893,43 @@ var LLS = (function (exports) {
 	                this.ropeOfTighteningAction(sender.IsPlayer() ? Player : sender);
 	            }
 	        });
+	        OnSentMessage(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
+	            if (data.Type === "Chat") {
+	                sender = sender ? sender : Player;
+	                this.CatSpeech(data);
+	            }
+	            return;
+	        });
+	    }
+	    CatSpeech(data) {
+	        var _a, _b;
+	        let catSpeech = (_b = (_a = Player.LLS) === null || _a === void 0 ? void 0 : _a.ArtifactModule) === null || _b === void 0 ? void 0 : _b.catSpeechEnabled;
+	        if (!catSpeech)
+	            return;
+	        if (!this.WearingCatSpeechMask(Player))
+	            return;
+	        let message = data.Content.split(" ");
+	        data.Content = data.Content.replace(/\b\S+\b/g, (str) => {
+	            if (str.length <= 3)
+	                return "mew";
+	            else {
+	                let length = str.length - 3;
+	                return "m" + "e".repeat(length) + "ow";
+	            }
+	        });
+	        return;
+	    }
+	    WearingCatSpeechMask(C) {
+	        var gag1 = InventoryGet(C, "ItemMouth");
+	        var gag2 = InventoryGet(C, "ItemMouth2");
+	        var gag3 = InventoryGet(C, "ItemMouth3");
+	        if (gag1 && (gag1.Asset.Name == "KittyHarnessPanelGag" || gag1.Asset.Name == "KittyGag" || gag1.Asset.Name == "KittyMuzzleGag"))
+	            return true;
+	        else if (gag2 && (gag2.Asset.Name == "KittyHarnessPanelGag" || gag2.Asset.Name == "KittyGag" || gag2.Asset.Name == "KittyMuzzleGag"))
+	            return true;
+	        else if (gag3 && (gag3.Asset.Name == "KittyHarnessPanelGag" || gag3.Asset.Name == "KittyGag" || gag3.Asset.Name == "KittyMuzzleGag"))
+	            return true;
+	        return false;
 	    }
 	    WearingPetsuitCollar(C) {
 	        var _a, _b, _c, _d, _e, _f;
@@ -1832,8 +1965,7 @@ var LLS = (function (exports) {
 	        else {
 	            var ropeName = (_d = (_c = (_b = rope === null || rope === void 0 ? void 0 : rope.Craft) === null || _b === void 0 ? void 0 : _b.Name) !== null && _c !== void 0 ? _c : rope === null || rope === void 0 ? void 0 : rope.Asset.Name) !== null && _d !== void 0 ? _d : "";
 	            var ropeCreator = (_f = (_e = rope === null || rope === void 0 ? void 0 : rope.Craft) === null || _e === void 0 ? void 0 : _e.MemberNumber) !== null && _f !== void 0 ? _f : -1;
-	            if (ropeName == ropeSettings.ropeOfTightening.name &&
-	                ropeCreator == ropeSettings.ropeOfTightening.creator) {
+	            if (ropeName == ropeSettings.ropeOfTightening.name && ropeCreator == ropeSettings.ropeOfTightening.creator) {
 	                SendAction("The rope around %NAME%'s arms tightens by itself, holding %POSSESSIVE% arms in place.");
 	                return;
 	            }
@@ -1848,12 +1980,15 @@ var LLS = (function (exports) {
 	        }
 	    }
 	    petsuitCollarActivate(C) {
-	        var _a, _b;
+	        var _a, _b, _c;
 	        let collarSettings = (_a = C.LLS) === null || _a === void 0 ? void 0 : _a.ArtifactModule;
 	        let buckleColor = (_b = collarSettings === null || collarSettings === void 0 ? void 0 : collarSettings.petsuitCollarSetting.buckleColor) !== null && _b !== void 0 ? _b : "#5AC5EE";
+	        let strapColor = (_c = collarSettings === null || collarSettings === void 0 ? void 0 : collarSettings.petsuitCollarSetting.strapColor) !== null && _c !== void 0 ? _c : "#2C2C2C";
 	        if (!buckleColor.startsWith("#"))
 	            buckleColor = "#" + buckleColor;
-	        InventoryWear(C, "ShinyPetSuit", "ItemArms", ["#3A3A3A", "Default", "#2C2C2C", buckleColor, "Default"], 1000, C.MemberNumber, {
+	        if (!strapColor.startsWith("#"))
+	            strapColor = "#" + strapColor;
+	        InventoryWear(C, "ShinyPetSuit", "ItemArms", ["#3A3A3A", "Default", strapColor, buckleColor, "Default"], 1000, C.MemberNumber, {
 	            Item: "ShinyPetSuit",
 	            ItemProperty: {},
 	            Property: "Comfy",
@@ -1870,40 +2005,48 @@ var LLS = (function (exports) {
 	                typed: 1,
 	            },
 	        });
-	        var suit = InventoryGet(Player, "ItemArms");
+	        var suit = InventoryGet(C, "ItemArms");
 	        if (suit && suit.Property && suit.Property.TypeRecord)
 	            suit.Property.TypeRecord.typed = 1;
 	        //if(suit && suit.Property) suit.Property.Hide = ["Bra", "Panties", "ItemNipples","ItemNipplesPiercings", "ItemBreasts", "Socks", "Suit", "SuitLower", "SocksLeft", "SocksRight"];
-	        clothesSafe.splice(0);
-	        let socksLeft = InventoryGet(Player, "SocksLeft");
-	        let socksRight = InventoryGet(Player, "SocksRight");
-	        let accessory = InventoryGet(Player, "ClothAccessory");
+	        clothesSafe = LZString.compressToBase64(JSON.stringify(BC_ItemsToItemBundles(C.Appearance)));
+	        let accessory = InventoryGet(C, "ClothAccessory");
+	        let socksLeft = InventoryGet(C, "SocksLeft");
+	        let socksRight = InventoryGet(C, "SocksRight");
 	        if (accessory && disallowedItemsPetsuit.indexOf(accessory.Asset.Name) != -1) {
-	            clothesSafe.push(accessory);
 	            InventoryRemove(C, "ClothAccessory");
 	        }
 	        if (socksLeft) {
-	            clothesSafe.push(socksLeft);
 	            InventoryRemove(C, "SocksLeft");
 	        }
 	        if (socksRight) {
-	            clothesSafe.push(socksRight);
 	            InventoryRemove(C, "SocksRight");
 	        }
-	        lockItem(Player, InventoryGet(Player, "ItemArms"), "PasswordPadlock");
+	        lockItem(C, InventoryGet(C, "ItemArms"), "PasswordPadlock");
 	        ChatRoomCharacterUpdate(C);
 	        SendAction("The collar on %NAME%'s neck releases a strange black fluid, which runs over %POSSESSIVE% body, covering it in a shiny black material that forms a petsuit.");
 	        petsuitActivated = true;
 	    }
 	    petsuitCollarDeactivate(C) {
 	        InventoryRemove(C, "ItemArms");
-	        for (let i = 0; i < clothesSafe.length; i++) {
-	            if (clothesSafe[i]) {
-	                InventoryWear(C, clothesSafe[i].Asset.Name, clothesSafe[i].Asset.Group.Name, clothesSafe[i].Color);
+	        let items = JSON.parse(LZString.decompressFromBase64(clothesSafe));
+	        console.log(items);
+	        items.forEach(item => {
+	            var _a;
+	            let asset = AssetGet(C.AssetFamily, item.Group, item.Name);
+	            if (!!asset) {
+	                let isRoomDisallowed = !InventoryChatRoomAllow((_a = asset === null || asset === void 0 ? void 0 : asset.Category) !== null && _a !== void 0 ? _a : []);
+	                if (isRoomDisallowed) {
+	                    let newItem = InventoryWear(C, item.Name, item.Group, item.Color, item.Difficulty, -1, item.Craft, false);
+	                    if (!!newItem) {
+	                        if (!!item.Property)
+	                            newItem.Property = item.Property;
+	                    }
+	                }
 	            }
-	        }
+	        });
 	        ChatRoomCharacterUpdate(C);
-	        SendAction("The petsuit on %NAME% turns back into a black fluid and returns into %POSSESSIVE% collar.");
+	        SendAction("The petsuit on %NAME% turns back into the black fluid and returns into %POSSESSIVE% collar.");
 	        petsuitActivated = false;
 	    }
 	    get allowedPetsuitCollarMembers() {
@@ -1929,7 +2072,7 @@ var LLS = (function (exports) {
 	        }
 	        if (this.allowedPetsuitCollarMembers.length > 0)
 	            return this.allowedPetsuitCollarMembers.indexOf((_a = member.MemberNumber) !== null && _a !== void 0 ? _a : 0) >= 0;
-	        return false;
+	        return true;
 	    }
 	    unload() {
 	        removeAllHooksByModule(ModuleCategory.Commands);
@@ -1937,6 +2080,38 @@ var LLS = (function (exports) {
 	    safeword() {
 	        if (petsuitActivated) {
 	            this.petsuitCollarDeactivate(Player);
+	        }
+	    }
+	    ValidationVerifyCraftData(Craft, Asset) {
+	        if (Craft === undefined) {
+	            return {
+	                result: undefined,
+	                messages: [],
+	            };
+	        }
+	        const saved = console.warn;
+	        try {
+	            const messages = [];
+	            console.warn = (m) => {
+	                if (typeof m === "string") {
+	                    messages.push(m);
+	                }
+	            };
+	            const result = CraftingValidate(Craft, Asset, true);
+	            return {
+	                result: result > CraftingStatusType.CRITICAL_ERROR ? Craft : undefined,
+	                messages,
+	            };
+	        }
+	        catch (error) {
+	            saved("BCX: Failed crafted data validation because of crash:", error);
+	            return {
+	                result: undefined,
+	                messages: [`Validation failed: ${error}`],
+	            };
+	        }
+	        finally {
+	            console.warn = saved;
 	        }
 	    }
 	}
@@ -2018,7 +2193,7 @@ var LLS = (function (exports) {
 	    }
 	}
 
-	class RemoteArtifacts extends RemoteGuiSubscreen {
+	class RemotePetsuitCollar extends RemoteGuiSubscreen {
 	    constructor() {
 	        super(...arguments);
 	        this.subscreens = [];
@@ -2026,7 +2201,7 @@ var LLS = (function (exports) {
 	        this.blinkColor = "Red";
 	    }
 	    get name() {
-	        return "Artifacts";
+	        return "Petsuit Collar";
 	    }
 	    get allowedMemberIds() {
 	        var _a;
@@ -2048,6 +2223,10 @@ var LLS = (function (exports) {
 	            memberIdIsAllowed = this.allowedMemberIds.indexOf(Player.MemberNumber) > -1;
 	        if (!memberIdIsAllowed)
 	            return "You do not have access to their artifacts...";
+	        else if (!this.settings.petsuitCollarSetting.remoteAccess)
+	            return "Remote Access is Disabled";
+	        else if (!this.settings.petsuitCollarSetting.enabled)
+	            return "Section is Disabled";
 	        else
 	            return "Section is Unavailable";
 	    }
@@ -2068,11 +2247,20 @@ var LLS = (function (exports) {
 	            [
 	                {
 	                    type: "colorpicker",
-	                    id: "petsuitCollar_color",
+	                    id: "petsuitCollar_buckleColor",
 	                    label: "Petsuit Buckle Color:",
 	                    description: "Sets the color of the buckles on the petsuit.",
 	                    setting: () => { var _a; return (_a = this.settings.petsuitCollarSetting.buckleColor) !== null && _a !== void 0 ? _a : "#5AC5EE"; },
 	                    setSetting: (val) => (this.settings.petsuitCollarSetting.buckleColor = val),
+	                    disabled: !this.settings.petsuitCollarSetting.enabled,
+	                },
+	                {
+	                    type: "colorpicker",
+	                    id: "petsuitCollar_strapColor",
+	                    label: "Petsuit Strap Color:",
+	                    description: "Sets the color of the straps on the petsuit.",
+	                    setting: () => { var _a; return (_a = this.settings.petsuitCollarSetting.strapColor) !== null && _a !== void 0 ? _a : "#2C2C2C"; },
+	                    setSetting: (val) => (this.settings.petsuitCollarSetting.strapColor = val),
 	                    disabled: !this.settings.petsuitCollarSetting.enabled,
 	                },
 	                {
@@ -2087,7 +2275,7 @@ var LLS = (function (exports) {
 	                    type: "text",
 	                    id: "petsuitCollar_allowedMembers",
 	                    label: "Allowed Member IDs:",
-	                    description: "A list of member IDs seperated by a commar, who are allowed to use the collar.",
+	                    description: "A list of member IDs seperated by a comma, who are allowed to use the collar.",
 	                    setting: () => { var _a; return (_a = this.settings.petsuitCollarSetting.allowedMembers) !== null && _a !== void 0 ? _a : ""; },
 	                    setSetting: (val) => (this.settings.petsuitCollarSetting.allowedMembers = val),
 	                    disabled: !this.settings.petsuitCollarSetting.enabled,
@@ -2125,7 +2313,15 @@ var LLS = (function (exports) {
 	                    setSetting: (val) => (this.settings.petsuitCollarSetting.locked = val),
 	                    disabled: !this.settings.petsuitCollarSetting.enabled || !this.settings.petsuitCollarSetting.lockable,
 	                },
-	            ],
+	            ], /*[
+	                <Setting>{
+	                    type: "checkbox",
+	                    label: "Catspeech mask enabled:",
+	                    description: "Enables the catspeech mask.",
+	                    setting: () => this.settings.catSpeechEnabled ?? false,
+	                    setSetting: (val) => (this.settings.catSpeechEnabled = val)
+	                },
+	            ]*/
 	        ];
 	    }
 	    Run() {
@@ -2203,7 +2399,7 @@ var LLS = (function (exports) {
 	    }
 	    Load() {
 	        this.subscreens = [
-	            new RemoteArtifacts(getModule("ArtifactModule"), this.Character)
+	            new RemotePetsuitCollar(getModule("ArtifactModule"), this.Character)
 	        ];
 	    }
 	    get character() {

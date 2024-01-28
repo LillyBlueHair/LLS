@@ -1,7 +1,7 @@
 import {
 	ArtifactSettingsModel,
 	PetsuitCollarModel,
-	PetsuitCollarSettingModel,
+	PetsuitCollarSettingsModel,
 	RopeOfTighteningModel,
 } from "./artifacts";
 import { BaseSettingsModel, GlobalPublicSettingsModel, GlobalSettingsModel, MiscSettingsModel } from "./base";
@@ -58,7 +58,8 @@ export class PublicSettingsModel implements IPublicSettingsModel {
 		ropeOfTighteningEnabled: false,
 		publicRopeOfTighteningEnabled: false,
 		ropeOfTightening: <RopeOfTighteningModel>{},
-		petsuitCollarSetting: <PetsuitCollarSettingModel>{
+		catSpeechEnabled: false,
+		petsuitCollarSetting: <PetsuitCollarSettingsModel>{
 			enabled: false,
 			remoteAccess: false,
 			lockable: false,
@@ -69,6 +70,7 @@ export class PublicSettingsModel implements IPublicSettingsModel {
 			lockOwner: false,
 			locked: false,
 			buckleColor: "",
+			strapColor: "",
 			petsuitCollar: <PetsuitCollarModel>{ name: "", creator: 0 },
 			ropeOfTighteningEnabled: false,
 			publicRopeOfTighteningEnabled: false,

@@ -1,22 +1,20 @@
 import { BaseSettingsModel } from "./base";
 
 export interface ArtifactSettingsModel extends ArtifactPublicSettingsModel { 
-
-    ropeOfTighteningEnabled: boolean;
-    publicRopeOfTighteningEnabled: boolean;
-
     ropeOfTightening: RopeOfTighteningModel;
 }
 
 export interface ArtifactPublicSettingsModel extends BaseSettingsModel {
-    petsuitCollarSetting: PetsuitCollarSettingModel;
+    petsuitCollarSetting: PetsuitCollarSettingsModel;
+    catSpeechEnabled: boolean;
 }
 
-export interface PetsuitCollarSettingModel {
+export interface PetsuitCollarSettingsModel {
     enabled: boolean;
     remoteAccess: boolean;
     lockable: boolean;
     buckleColor: string;
+    strapColor: string;
     speechEnabled: boolean;
     trigger: string;
     allowedMembers: string;
