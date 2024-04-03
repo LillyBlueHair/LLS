@@ -1,5 +1,5 @@
 import { BaseModule } from "base";
-import { SendMessage, shuffleArray, getCharacterName, SendActivityMessage, getCharacterNumber, LLS_SendLocal, removeAllHooksByModule } from "../utils";
+import { sendMessage, shuffleArray, getCharacterName, sendActivityMessage, sendLocal, removeAllHooksByModule } from "../utils";
 import { ModuleCategory } from "Settings/settingDefinitions";
 
 let cardDeck: [string, string][] = ([] = []);
@@ -18,7 +18,7 @@ export class CardsModule extends BaseModule {
             });
         });
         shuffleArray(cardDeck);
-        SendActivityMessage(
+        sendActivityMessage(
             `${Player.Nickname ? Player.Nickname : Player.Name} took the remaining ${
                 cardDeck.length
             } cards from the deck and shuffled all cards for a new deck.`
@@ -33,7 +33,7 @@ export class CardsModule extends BaseModule {
         if (!card) return;
         if (target) {
             if (open) {
-                SendActivityMessage(
+                sendActivityMessage(
                     `${Player.Nickname ? Player.Nickname : Player.Name} dealt this card openly to ${getCharacterName(target, "unknown")}: ${card.join("")}`
                 );
                 if (dealersLog.has(target)) {
@@ -42,7 +42,7 @@ export class CardsModule extends BaseModule {
                     dealersLog.set(target, new Array(card));
                 }
             } else {
-                SendActivityMessage(`${Player.Nickname ? Player.Nickname : Player.Name} dealt you this card face down: ${card.join("")}`, target);
+                sendActivityMessage(`${Player.Nickname ? Player.Nickname : Player.Name} dealt you this card face down: ${card.join("")}`, target);
                 if (dealersLog.has(target)) {
                     dealersLog.get(target)?.push(card);
                 } else {
@@ -50,7 +50,7 @@ export class CardsModule extends BaseModule {
                 }
             }
         } else {
-            SendActivityMessage(`${Player.Nickname ? Player.Nickname : Player.Name} openly drew this card face up: ${card.join("")}`, target);
+            sendActivityMessage(`${Player.Nickname ? Player.Nickname : Player.Name} openly drew this card face up: ${card.join("")}`, target);
         }
     }
 
@@ -116,13 +116,13 @@ export class CardsModule extends BaseModule {
             message = message.slice(0, -2);
         }
         if (priv) {
-            LLS_SendLocal(message);
+            sendLocal(message);
         } else {
-            SendMessage(message);
+            sendMessage(message);
         }
     }
 
-    unload(): void {
+    Unload(): void {
         removeAllHooksByModule(ModuleCategory.Commands);
     }
 }

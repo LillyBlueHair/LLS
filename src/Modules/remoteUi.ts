@@ -49,7 +49,7 @@ export class RemoteUiModule extends BaseModule {
         return !!C.LLS;
     }
 
-    load(): void {
+    Load(): void {
         hookFunction("InformationSheetRun", 11, (args, next) => {
 			if ((<any>window).bcx?.inBcxSubscreen())
 				return next(args);
@@ -96,7 +96,7 @@ export class RemoteUiModule extends BaseModule {
 		}, ModuleCategory.RemoteUi);
     }
 
-    unload(): void {
+    Unload(): void {
         removeAllHooksByModule(ModuleCategory.RemoteUi);
     }
 }

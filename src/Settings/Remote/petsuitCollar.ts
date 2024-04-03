@@ -1,7 +1,7 @@
 import { RemoteGuiSubscreen } from "./remoteBase";
 import { Setting } from "Settings/settingBase";
-import { GetDelimitedList } from "utils";
-import { PetsuitCollarModel, ArtifactPublicSettingsModel, PetsuitCollarSettingsModel } from "Settings/Models/artifacts";
+import { getDelimitedList } from "utils";
+import { PetsuitCollarModel, ArtifactPublicSettingsModel } from "Settings/Models/artifacts";
 
 export class RemotePetsuitCollar extends RemoteGuiSubscreen {
 	subscreens: RemoteGuiSubscreen[] = [];
@@ -12,7 +12,7 @@ export class RemotePetsuitCollar extends RemoteGuiSubscreen {
 
 	get allowedMemberIds(): number[] {
 		let idList =
-			GetDelimitedList(this.settings.petsuitCollarSetting.allowedMembers)
+			getDelimitedList(this.settings.petsuitCollarSetting.allowedMembers)
 				.map((id) => +id)
 				.filter((id) => id > 0) ?? [];
 		if (this.settings.petsuitCollarSetting.petsuitCollar && this.settings.petsuitCollarSetting.petsuitCollar.creator > 0)

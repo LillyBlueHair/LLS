@@ -1,5 +1,5 @@
-import { bcModSDK, hookFunction, isObject, settingsSave } from "./utils";
-import { IPublicSettingsModel, ISettingsModel, PublicSettingsModel } from "Settings/Models/settings";
+import { hookFunction, isObject, settingsSave } from "./utils";
+import { ISettingsModel } from "Settings/Models/settings";
 import { modules, registerModule } from "modules";
 import { CoreModule } from "Modules/core";
 import { CommandModule } from "Modules/commands";
@@ -114,16 +114,16 @@ function initModules(): boolean {
 	}
 
 	for (const m of modules()) {
-		m.load();
+		m.Load();
 	}
 
 	for (const m of modules()) {
-		m.run();
+		m.Run();
 	}
 
 	hookFunction("ChatRoomSafewordRevert", 1, (args, next) => {
 		for (const m of modules()) {
-			m.safeword();
+			m.Safeword();
 		}
 		return next(args);
 	});
@@ -131,7 +131,7 @@ function initModules(): boolean {
 	hookFunction("ChatRoomSafewordRelease", 1, (args, next) => {
 		var ret = next(args);
 		for (const m of modules()) {
-			m.safeword();
+			m.Safeword();
 		}
 		return ret;
 	});
@@ -150,7 +150,7 @@ export function unload(): true {
 
 function unloadModules() {
 	for (const m of modules()) {
-		m.unload();
+		m.Unload();
 	}
 }
 

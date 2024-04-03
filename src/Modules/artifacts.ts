@@ -2,8 +2,7 @@ import { BaseModule } from "base";
 import { GuiArtifact } from "Settings/artifacts";
 import { ArtifactSettingsModel, PetsuitCollarModel, RopeOfTighteningModel } from "Settings/Models/artifacts";
 import { ModuleCategory, Subscreen } from "Settings/settingDefinitions";
-import { BC_ItemsToItemBundles, BC_ItemToItemBundle, GetDelimitedList, isPhraseInString, lockItem, OnActivity, OnChat, OnSentMessage, OnWhisper, removeAllHooksByModule, SendAction } from "utils";
-import lzString from "lz-string";
+import { itemsToItemBundles, getDelimitedList, isPhraseInString, lockItem, onActivity, onChat,  onSentMessage, onWhisper, removeAllHooksByModule, sendAction } from "utils";
 
 let petsuitActivated = false;
 let clothesSafe: string = "";
@@ -57,28 +56,29 @@ export class ArtifactModule extends BaseModule {
         return GuiArtifact;
     }
 
-    load(): void {
-        OnChat(1, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
+    Load(): void {
+        onChat(1, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
             let collarSettings = Player.LLS?.ArtifactModule;
             if (!collarSettings || !collarSettings.petsuitCollarSetting.enabled || !collarSettings.petsuitCollarSetting.speechEnabled) return;
 
-            if (isPhraseInString(msg.toLowerCase(), collarSettings.petsuitCollarSetting.trigger.toLowerCase()) && this.WearingPetsuitCollar(Player)) {
+            if (isPhraseInString(msg.toLowerCase(), collarSettings.petsuitCollarSetting.trigger.toLowerCase()) && this.wearingPetsuitCollar(Player)) {
                 if (sender?.IsPlayer() && !collarSettings.petsuitCollarSetting.allowSelfTrigger) return;
                 else if (sender?.IsPlayer()) this.petsuitCollarToggle(Player);
-                else if (this.AllowedPetsuitCollarMember(sender)) {
+                else if (this.isAllowedPetsuitCollarMember(sender)) {
                     this.petsuitCollarToggle(Player);
                 }
             }
+            return;
         });
 
-        OnWhisper(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
+        onWhisper(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
             let collarSettings = Player.LLS?.ArtifactModule;
             if (!collarSettings || !collarSettings.petsuitCollarSetting.enabled) return;
             else if (sender?.IsPlayer() && petsuitActivated) return;
             else if (
                 msg.toLowerCase().startsWith("!petsuitcollar") &&
-                (this.AllowedPetsuitCollarMember(sender) || sender?.IsPlayer) &&
-                this.WearingPetsuitCollar(Player)
+                (this.isAllowedPetsuitCollarMember(sender) || sender?.IsPlayer) &&
+                this.wearingPetsuitCollar(Player)
             ) {
                 this.petsuitCollarToggle(Player);
                 return "skipBCX";
@@ -86,25 +86,26 @@ export class ArtifactModule extends BaseModule {
             return;
         });
 
-        OnActivity(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
+        onActivity(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
             if (msg == "ChatSelf-ItemArms-StruggleArms" && sender) {
                 this.ropeOfTighteningAction(sender.IsPlayer() ? Player : (sender as OtherCharacter));
             }
+            return;
         });
 
-        OnSentMessage(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {        
+        onSentMessage(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {        
             if(data.Type === "Chat"){
                 sender = sender ? sender : Player;
-                this.CatSpeech(data);
+                this.catSpeech(data);
             }
             return;
         });
     }
 
-    CatSpeech(data: any) {
+    catSpeech(data: any): void {
         let catSpeech = Player.LLS?.ArtifactModule?.catSpeechEnabled;
         if(!catSpeech) return;
-        if(!this.WearingCatSpeechMask(Player)) return;
+        if(!this.wearingCatSpeechMask(Player)) return;
         
         data.Content = data.Content.replace(/\b\S+\b/g, (str: string | any[]) => {
             if(str.length <= 3) return "mew";
@@ -116,7 +117,7 @@ export class ArtifactModule extends BaseModule {
         return;
     }
 
-    WearingCatSpeechMask(C: OtherCharacter | PlayerCharacter) {
+    wearingCatSpeechMask(C: OtherCharacter | PlayerCharacter): boolean {
         var gag1 = InventoryGet(C, "ItemMouth");
         var gag2 = InventoryGet(C, "ItemMouth2");
         var gag3 = InventoryGet(C, "ItemMouth3");
@@ -126,7 +127,7 @@ export class ArtifactModule extends BaseModule {
         return false;
     }
 
-    WearingPetsuitCollar(C: OtherCharacter | PlayerCharacter) {
+    wearingPetsuitCollar(C: OtherCharacter | PlayerCharacter): boolean {
         var collar = InventoryGet(C, "ItemNeck");
         let collarSettings = C.LLS?.ArtifactModule;
         if (!collar || !collarSettings || !collarSettings.petsuitCollarSetting.enabled) return false;
@@ -155,13 +156,13 @@ export class ArtifactModule extends BaseModule {
 
         // If configured rope is not crafted, let any inherited rope work.
         if (!ropeSettings.ropeOfTightening.creator) {
-            SendAction("The rope around %NAME%'s arms tightens by itself, holding %POSSESSIVE% arms in place.");
+            sendAction("The rope around %NAME%'s arms tightens by itself, holding %POSSESSIVE% arms in place.");
             return;
         } else {
             var ropeName = rope?.Craft?.Name ?? rope?.Asset.Name ?? "";
             var ropeCreator = rope?.Craft?.MemberNumber ?? -1;
             if (ropeName == ropeSettings.ropeOfTightening.name && ropeCreator == ropeSettings.ropeOfTightening.creator) {
-                SendAction("The rope around %NAME%'s arms tightens by itself, holding %POSSESSIVE% arms in place.");
+                sendAction("The rope around %NAME%'s arms tightens by itself, holding %POSSESSIVE% arms in place.");
                 return;
             }
         }
@@ -205,7 +206,7 @@ export class ArtifactModule extends BaseModule {
         if (suit && suit.Property && suit.Property.TypeRecord) suit.Property.TypeRecord.typed = 1;
         //if(suit && suit.Property) suit.Property.Hide = ["Bra", "Panties", "ItemNipples","ItemNipplesPiercings", "ItemBreasts", "Socks", "Suit", "SuitLower", "SocksLeft", "SocksRight"];
 		
-        clothesSafe = LZString.compressToBase64(JSON.stringify(BC_ItemsToItemBundles(C.Appearance)));
+        clothesSafe = LZString.compressToBase64(JSON.stringify(itemsToItemBundles(C.Appearance)));
 
 		let accessory = InventoryGet(C, "ClothAccessory");
 		let socksLeft = InventoryGet(C, "SocksLeft");
@@ -224,7 +225,7 @@ export class ArtifactModule extends BaseModule {
         lockItem(C, InventoryGet(C, "ItemArms"), "PasswordPadlock");
         ChatRoomCharacterUpdate(C);
 
-        SendAction(
+        sendAction(
             "The collar on %NAME%'s neck releases a strange black fluid, which runs over %POSSESSIVE% body, covering it in a shiny black material that forms a petsuit."
         );
         petsuitActivated = true;
@@ -248,12 +249,12 @@ export class ArtifactModule extends BaseModule {
             }
         });
         ChatRoomCharacterUpdate(C);
-        SendAction("The petsuit on %NAME% turns back into the black fluid and returns into %POSSESSIVE% collar.");
+        sendAction("The petsuit on %NAME% turns back into the black fluid and returns into %POSSESSIVE% collar.");
         petsuitActivated = false;
     }
 
     get allowedPetsuitCollarMembers(): number[] {
-        let stringList = GetDelimitedList(this.settings.petsuitCollarSetting.allowedMembers, ",");
+        let stringList = getDelimitedList(this.settings.petsuitCollarSetting.allowedMembers, ",");
         let memberList = stringList
             .filter((str) => !!str && +str === +str)
             .map((str) => parseInt(str))
@@ -261,7 +262,7 @@ export class ArtifactModule extends BaseModule {
         return memberList;
     }
 
-    AllowedPetsuitCollarMember(member: Character | null): boolean {
+    isAllowedPetsuitCollarMember(member: Character | null): boolean {
         if (!member) return false;
 
         if (this.settings.petsuitCollarSetting.lockOwner == true) {
@@ -276,16 +277,16 @@ export class ArtifactModule extends BaseModule {
         return true;
     }
 
-    unload(): void {
+    Unload(): void {
         removeAllHooksByModule(ModuleCategory.Commands);
     }
 
-    safeword(): void {
+    Safeword(): void {
         if (petsuitActivated) {
             this.petsuitCollarDeactivate(Player);
         }
     }
-    ValidationVerifyCraftData(
+    validationVerifyCraftData(
         Craft: unknown,
         Asset: Asset | null
     ): {

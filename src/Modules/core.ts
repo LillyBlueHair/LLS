@@ -1,7 +1,7 @@
 import { BaseModule } from "base";
-import { getModule, modules } from "modules";
+import { modules } from "modules";
 import { BaseSettingsModel, GlobalSettingsModel } from "Settings/Models/base";
-import { IPublicSettingsModel, PublicSettingsModel, ISettingsModel } from "Settings/Models/settings";
+import { IPublicSettingsModel, PublicSettingsModel } from "Settings/Models/settings";
 import { ModuleCategory } from "Settings/settingDefinitions";
 import {
 	removeAllHooksByModule,
@@ -9,7 +9,7 @@ import {
 	sendLLSMessage,
 	getChatroomCharacter,
 	settingsSave,
-	LLS_SendLocal,
+	sendLocal,
 } from "../utils";
 
 // Core Module that can handle basic functionality like server handshakes etc.
@@ -44,7 +44,7 @@ export class CoreModule extends BaseModule {
 		};
 	}
 
-	SendPublicPacket(replyRequested: boolean, type: LLSMessageModelType = "init") {
+	sendPublicPacket(replyRequested: boolean, type: LLSMessageModelType = "init") {
 		sendLLSMessage(<LLSMessageModel>{
 			version: LLS_VERSION,
 			type: type,
@@ -54,12 +54,12 @@ export class CoreModule extends BaseModule {
 		});
 	}
 
-	load(): void {
+	Load(): void {
 		hookFunction(
 			"ChatRoomSync",
 			1,
 			(args, next) => {
-				this.SendPublicPacket(true);
+				this.sendPublicPacket(true);
 				return next(args);
 			},
 			ModuleCategory.Core
@@ -69,7 +69,7 @@ export class CoreModule extends BaseModule {
 			"ChatRoomMessage",
 			1,
 			(args, next) => {
-				this.CheckForPublicPacket(args[0]);
+				this.checkForPublicPacket(args[0]);
 				return next(args);
 			},
 			ModuleCategory.Core
@@ -94,16 +94,16 @@ export class CoreModule extends BaseModule {
         DrawLineCorner(X + 2, Y + 2, X + Width - 2, Y + Height - 2, X + 2, Y + 2, 2, "Black");
     }*/
 
-	run(): void {
+	Run(): void {
 		if (ServerPlayerIsInChatRoom()) {
 		}
 	}
 
-	unload(): void {
+	Unload(): void {
 		removeAllHooksByModule(ModuleCategory.Core);
 	}
 
-	CheckForPublicPacket(data: IChatRoomMessage) {
+	checkForPublicPacket(data: IChatRoomMessage) {
 		if (
 			data.Sender != Player.MemberNumber &&
 			data.Type == "Hidden" &&
@@ -118,28 +118,28 @@ export class CoreModule extends BaseModule {
 					this.Init(C, msg);
 					break;
 				case "sync":
-					this.Sync(C, msg);
+					this.sync(C, msg);
 					break;
 				case "command":
-					this.Command(C, msg);
+					this.command(C, msg);
 					break;
 			}
 		}
 	}
 
 	Init(Sender: OtherCharacter | null, msg: LLSMessageModel) {
-		this.Sync(Sender, msg);
+		this.sync(Sender, msg);
 	}
 
-	Sync(Sender: OtherCharacter | null, msg: LLSMessageModel) {
+	sync(Sender: OtherCharacter | null, msg: LLSMessageModel) {
 		if (!Sender) return;
 		Sender.LLS = Object.assign(Sender.LLS ?? {}, msg.settings ?? {});
 		if (msg.reply) {
-			this.SendPublicPacket(false, msg.type);
+			this.sendPublicPacket(false, msg.type);
 		}
 	}
 
-	Command(Sender: OtherCharacter | null, msg: LLSMessageModel) {
+	command(Sender: OtherCharacter | null, msg: LLSMessageModel) {
 		if (!msg.command || msg.target != Player.MemberNumber) return;
 		switch (msg.command!.name) {
 			case "grab":
@@ -148,7 +148,7 @@ export class CoreModule extends BaseModule {
 			case "remote":
 				Object.assign(Player.LLS.ArtifactModule, msg.settings?.ArtifactModule);
 				settingsSave(true);
-				LLS_SendLocal(`${!Sender ? "Someone" : CharacterNickname(Sender)} has accessed your remote settings!`);
+				sendLocal(`${!Sender ? "Someone" : CharacterNickname(Sender)} has accessed your remote settings!`);
 				break;
 		}
 	}

@@ -46,23 +46,23 @@ export abstract class BaseModule {
 		return null;
 	}
 
-	load() {
+	Load() {
 		// Empty
 	}
 
-	run() {
+	Run() {
 		// Empty
 	}
 
-	unload() {
+	Unload() {
 		// Empty
 	}
 
-	reload() {
+	Reload() {
 		// Empty
 	}
 
-	safeword() {
+	Safeword() {
 		// Empty
 	}
 }

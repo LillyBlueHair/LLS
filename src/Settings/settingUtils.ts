@@ -85,7 +85,7 @@ export class GUI extends BaseModule {
 		};
     }
 
-	load(): void {
+	Load(): void {
 		// At that point all other modules have been initialized, build the list of their screens
 		for (const module of modules()) {
 			if (!module.settingsScreen) continue;
@@ -97,7 +97,7 @@ export class GUI extends BaseModule {
 	}
 }
 
-export function drawTooltip(x: number, y: number, width: number, text: string, align: "left" | "center" | "right") {
+export function DrawTooltip(x: number, y: number, width: number, text: string, align: "left" | "center" | "right") {
 	const canvas = MainCanvas;
 	const bak = canvas.textAlign;
 	canvas.textAlign = align;

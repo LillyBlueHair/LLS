@@ -1,4 +1,3 @@
-import { settingsSave } from "utils";
 import { ArtifactSettingsModel, PetsuitCollarModel } from "./Models/artifacts";
 import { GuiSubscreen, Setting } from "./settingBase";
 import { getModule } from "modules";

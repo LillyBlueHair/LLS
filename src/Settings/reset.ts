@@ -1,5 +1,4 @@
-import { GuiSubscreen, Setting } from "./settingBase";
-import { BaseSettingsModel } from "./Models/base";
+import { GuiSubscreen } from "./settingBase";
 import { getModule } from "modules";
 import { CommandModule } from "Modules/commands";
 
@@ -49,12 +48,12 @@ export class GuiReset extends GuiSubscreen {
 
 		if (MouseIn(1520, 720, 200, 80)) return this.Exit();
 
-		if (MouseIn(300, 720, 200, 80) && Date.now() >= this.allowedConfirmTime) return this.Confirm();
+		if (MouseIn(300, 720, 200, 80) && Date.now() >= this.allowedConfirmTime) return this.confirm();
 	}
 
-	Confirm() {
+	confirm() {
 		this.allowedConfirmTime = null;
-		getModule<CommandModule>("CommandModule")?.EmergencyRelease();
+		getModule<CommandModule>("CommandModule")?.emergencyRelease();
 		this.Exit();
 	}
 }

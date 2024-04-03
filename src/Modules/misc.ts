@@ -13,9 +13,9 @@ export class MiscModule extends BaseModule {
 		};
 	}
 
-	safeword(): void {}
+	Safeword(): void {}
 
-	load(): void {
+	Load(): void {
 		// To draw the button for orgasm resist
 		hookFunction("ChatRoomRun", 1, (args, next) => {
 			next(args);
@@ -57,7 +57,7 @@ export class MiscModule extends BaseModule {
 		});
 	}
 
-	CharacterToggleVisibility(mode: String, C: OtherCharacter | PlayerCharacter) {
+	characterToggleVisibility(mode: String, C: OtherCharacter | PlayerCharacter) {
 		let script = InventoryWear(C, "Script", "ItemScript");
 		
 		if(!script) return;
@@ -75,5 +75,5 @@ export class MiscModule extends BaseModule {
 		CharacterScriptRefresh(C);
    }
 
-	unload(): void {}
+	Unload(): void {}
 }

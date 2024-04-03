@@ -57,10 +57,10 @@ var LLS = (function (exports) {
 	var bcmodsdk = {};
 
 	(function (exports) {
-		// Bondage Club Mod Development Kit (1.1.0)
+		// Bondage Club Mod Development Kit (1.2.0)
 		// For more info see: https://github.com/Jomshir98/bondage-club-mod-sdk
 		/** @type {ModSDKGlobalAPI} */
-		var bcModSdk=function(){"use strict";const e="1.1.0";function o(e){alert("Mod ERROR:\n"+e);const o=new Error(e);throw console.error(o),o}const t=new TextEncoder;function n(e){return !!e&&"object"==typeof e&&!Array.isArray(e)}function r(e){const o=new Set;return e.filter((e=>!o.has(e)&&o.add(e)))}const i=new Map,a=new Set;function d(e){a.has(e)||(a.add(e),console.warn(e));}function s(e){const o=[],t=new Map,n=new Set;for(const r of p.values()){const i=r.patching.get(e.name);if(i){o.push(...i.hooks);for(const[o,a]of i.patches.entries())t.has(o)&&t.get(o)!==a&&d(`ModSDK: Mod '${r.name}' is patching function ${e.name} with same pattern that is already applied by different mod, but with different pattern:\nPattern:\n${o}\nPatch1:\n${t.get(o)||""}\nPatch2:\n${a}`),t.set(o,a),n.add(r.name);}}o.sort(((e,o)=>o.priority-e.priority));const r=function(e,o){if(0===o.size)return e;let t=e.toString().replaceAll("\r\n","\n");for(const[n,r]of o.entries())t.includes(n)||d(`ModSDK: Patching ${e.name}: Patch ${n} not applied`),t=t.replaceAll(n,r);return (0,eval)(`(${t})`)}(e.original,t);let i=function(o){var t,i;const a=null===(i=(t=m.errorReporterHooks).hookChainExit)||void 0===i?void 0:i.call(t,e.name,n),d=r.apply(this,o);return null==a||a(),d};for(let t=o.length-1;t>=0;t--){const n=o[t],r=i;i=function(o){var t,i;const a=null===(i=(t=m.errorReporterHooks).hookEnter)||void 0===i?void 0:i.call(t,e.name,n.mod),d=n.hook.apply(this,[o,e=>{if(1!==arguments.length||!Array.isArray(o))throw new Error(`Mod ${n.mod} failed to call next hook: Expected args to be array, got ${typeof e}`);return r.call(this,e)}]);return null==a||a(),d};}return {hooks:o,patches:t,patchesSources:n,enter:i,final:r}}function c(e,o=!1){let r=i.get(e);if(r)o&&(r.precomputed=s(r));else {let o=window;const a=e.split(".");for(let t=0;t<a.length-1;t++)if(o=o[a[t]],!n(o))throw new Error(`ModSDK: Function ${e} to be patched not found; ${a.slice(0,t+1).join(".")} is not object`);const d=o[a[a.length-1]];if("function"!=typeof d)throw new Error(`ModSDK: Function ${e} to be patched not found`);const c=function(e){let o=-1;for(const n of t.encode(e)){let e=255&(o^n);for(let o=0;o<8;o++)e=1&e?-306674912^e>>>1:e>>>1;o=o>>>8^e;}return ((-1^o)>>>0).toString(16).padStart(8,"0").toUpperCase()}(d.toString().replaceAll("\r\n","\n")),l={name:e,original:d,originalHash:c};r=Object.assign(Object.assign({},l),{precomputed:s(l),router:()=>{},context:o,contextProperty:a[a.length-1]}),r.router=function(e){return function(...o){return e.precomputed.enter.apply(this,[o])}}(r),i.set(e,r),o[r.contextProperty]=r.router;}return r}function l(){const e=new Set;for(const o of p.values())for(const t of o.patching.keys())e.add(t);for(const o of i.keys())e.add(o);for(const o of e)c(o,!0);}function f(){const e=new Map;for(const[o,t]of i)e.set(o,{name:o,original:t.original,originalHash:t.originalHash,sdkEntrypoint:t.router,currentEntrypoint:t.context[t.contextProperty],hookedByMods:r(t.precomputed.hooks.map((e=>e.mod))),patchedByMods:Array.from(t.precomputed.patchesSources)});return e}const p=new Map;function u(e){p.get(e.name)!==e&&o(`Failed to unload mod '${e.name}': Not registered`),p.delete(e.name),e.loaded=!1,l();}function g(e,t,r){"string"==typeof e&&"string"==typeof t&&(alert(`Mod SDK warning: Mod '${e}' is registering in a deprecated way.\nIt will work for now, but please inform author to update.`),e={name:e,fullName:e,version:t},t={allowReplace:!0===r}),e&&"object"==typeof e||o("Failed to register mod: Expected info object, got "+typeof e),"string"==typeof e.name&&e.name||o("Failed to register mod: Expected name to be non-empty string, got "+typeof e.name);let i=`'${e.name}'`;"string"==typeof e.fullName&&e.fullName||o(`Failed to register mod ${i}: Expected fullName to be non-empty string, got ${typeof e.fullName}`),i=`'${e.fullName} (${e.name})'`,"string"!=typeof e.version&&o(`Failed to register mod ${i}: Expected version to be string, got ${typeof e.version}`),e.repository||(e.repository=void 0),void 0!==e.repository&&"string"!=typeof e.repository&&o(`Failed to register mod ${i}: Expected repository to be undefined or string, got ${typeof e.version}`),null==t&&(t={}),t&&"object"==typeof t||o(`Failed to register mod ${i}: Expected options to be undefined or object, got ${typeof t}`);const a=!0===t.allowReplace,d=p.get(e.name);d&&(d.allowReplace&&a||o(`Refusing to load mod ${i}: it is already loaded and doesn't allow being replaced.\nWas the mod loaded multiple times?`),u(d));const s=e=>{"string"==typeof e&&e||o(`Mod ${i} failed to patch a function: Expected function name string, got ${typeof e}`);let t=g.patching.get(e);return t||(t={hooks:[],patches:new Map},g.patching.set(e,t)),t},f={unload:()=>u(g),hookFunction:(e,t,n)=>{g.loaded||o(`Mod ${i} attempted to call SDK function after being unloaded`);const r=s(e);"number"!=typeof t&&o(`Mod ${i} failed to hook function '${e}': Expected priority number, got ${typeof t}`),"function"!=typeof n&&o(`Mod ${i} failed to hook function '${e}': Expected hook function, got ${typeof n}`);const a={mod:g.name,priority:t,hook:n};return r.hooks.push(a),l(),()=>{const e=r.hooks.indexOf(a);e>=0&&(r.hooks.splice(e,1),l());}},patchFunction:(e,t)=>{g.loaded||o(`Mod ${i} attempted to call SDK function after being unloaded`);const r=s(e);n(t)||o(`Mod ${i} failed to patch function '${e}': Expected patches object, got ${typeof t}`);for(const[n,a]of Object.entries(t))"string"==typeof a?r.patches.set(n,a):null===a?r.patches.delete(n):o(`Mod ${i} failed to patch function '${e}': Invalid format of patch '${n}'`);l();},removePatches:e=>{g.loaded||o(`Mod ${i} attempted to call SDK function after being unloaded`);s(e).patches.clear(),l();},callOriginal:(e,t,n)=>(g.loaded||o(`Mod ${i} attempted to call SDK function after being unloaded`),"string"==typeof e&&e||o(`Mod ${i} failed to call a function: Expected function name string, got ${typeof e}`),Array.isArray(t)||o(`Mod ${i} failed to call a function: Expected args array, got ${typeof t}`),function(e,o,t=window){return c(e).original.apply(t,o)}(e,t,n)),getOriginalHash:e=>("string"==typeof e&&e||o(`Mod ${i} failed to get hash: Expected function name string, got ${typeof e}`),c(e).originalHash)},g={name:e.name,fullName:e.fullName,version:e.version,repository:e.repository,allowReplace:a,api:f,loaded:!0,patching:new Map};return p.set(e.name,g),Object.freeze(f)}function h(){const e=[];for(const o of p.values())e.push({name:o.name,fullName:o.fullName,version:o.version,repository:o.repository});return e}let m;const y=function(){if(void 0===window.bcModSdk)return window.bcModSdk=function(){const o={version:e,apiVersion:1,registerMod:g,getModsInfo:h,getPatchingInfo:f,errorReporterHooks:Object.seal({hookEnter:null,hookChainExit:null})};return m=o,Object.freeze(o)}();if(n(window.bcModSdk)||o("Failed to init Mod SDK: Name already in use"),1!==window.bcModSdk.apiVersion&&o(`Failed to init Mod SDK: Different version already loaded ('1.1.0' vs '${window.bcModSdk.version}')`),window.bcModSdk.version!==e&&(alert(`Mod SDK warning: Loading different but compatible versions ('1.1.0' vs '${window.bcModSdk.version}')\nOne of mods you are using is using an old version of SDK. It will work for now but please inform author to update`),window.bcModSdk.version.startsWith("1.0.")&&void 0===window.bcModSdk._shim10register)){const e=window.bcModSdk,o=Object.freeze(Object.assign(Object.assign({},e),{registerMod:(o,t,n)=>o&&"object"==typeof o&&"string"==typeof o.name&&"string"==typeof o.version?e.registerMod(o.name,o.version,"object"==typeof t&&!!t&&!0===t.allowReplace):e.registerMod(o,t,n),_shim10register:!0}));window.bcModSdk=o;}return window.bcModSdk}();return "undefined"!='object'&&(Object.defineProperty(exports,"__esModule",{value:!0}),exports.default=y),y}(); 
+		var bcModSdk=function(){"use strict";const o="1.2.0";function e(o){alert("Mod ERROR:\n"+o);const e=new Error(o);throw console.error(e),e}const t=new TextEncoder;function n(o){return !!o&&"object"==typeof o&&!Array.isArray(o)}function r(o){const e=new Set;return o.filter((o=>!e.has(o)&&e.add(o)))}const i=new Map,a=new Set;function c(o){a.has(o)||(a.add(o),console.warn(o));}function s(o){const e=[],t=new Map,n=new Set;for(const r of f.values()){const i=r.patching.get(o.name);if(i){e.push(...i.hooks);for(const[e,a]of i.patches.entries())t.has(e)&&t.get(e)!==a&&c(`ModSDK: Mod '${r.name}' is patching function ${o.name} with same pattern that is already applied by different mod, but with different pattern:\nPattern:\n${e}\nPatch1:\n${t.get(e)||""}\nPatch2:\n${a}`),t.set(e,a),n.add(r.name);}}e.sort(((o,e)=>e.priority-o.priority));const r=function(o,e){if(0===e.size)return o;let t=o.toString().replaceAll("\r\n","\n");for(const[n,r]of e.entries())t.includes(n)||c(`ModSDK: Patching ${o.name}: Patch ${n} not applied`),t=t.replaceAll(n,r);return (0,eval)(`(${t})`)}(o.original,t);let i=function(e){var t,i;const a=null===(i=(t=m.errorReporterHooks).hookChainExit)||void 0===i?void 0:i.call(t,o.name,n),c=r.apply(this,e);return null==a||a(),c};for(let t=e.length-1;t>=0;t--){const n=e[t],r=i;i=function(e){var t,i;const a=null===(i=(t=m.errorReporterHooks).hookEnter)||void 0===i?void 0:i.call(t,o.name,n.mod),c=n.hook.apply(this,[e,o=>{if(1!==arguments.length||!Array.isArray(e))throw new Error(`Mod ${n.mod} failed to call next hook: Expected args to be array, got ${typeof o}`);return r.call(this,o)}]);return null==a||a(),c};}return {hooks:e,patches:t,patchesSources:n,enter:i,final:r}}function l(o,e=!1){let r=i.get(o);if(r)e&&(r.precomputed=s(r));else {let e=window;const a=o.split(".");for(let t=0;t<a.length-1;t++)if(e=e[a[t]],!n(e))throw new Error(`ModSDK: Function ${o} to be patched not found; ${a.slice(0,t+1).join(".")} is not object`);const c=e[a[a.length-1]];if("function"!=typeof c)throw new Error(`ModSDK: Function ${o} to be patched not found`);const l=function(o){let e=-1;for(const n of t.encode(o)){let o=255&(e^n);for(let e=0;e<8;e++)o=1&o?-306674912^o>>>1:o>>>1;e=e>>>8^o;}return ((-1^e)>>>0).toString(16).padStart(8,"0").toUpperCase()}(c.toString().replaceAll("\r\n","\n")),d={name:o,original:c,originalHash:l};r=Object.assign(Object.assign({},d),{precomputed:s(d),router:()=>{},context:e,contextProperty:a[a.length-1]}),r.router=function(o){return function(...e){return o.precomputed.enter.apply(this,[e])}}(r),i.set(o,r),e[r.contextProperty]=r.router;}return r}function d(){for(const o of i.values())o.precomputed=s(o);}function p(){const o=new Map;for(const[e,t]of i)o.set(e,{name:e,original:t.original,originalHash:t.originalHash,sdkEntrypoint:t.router,currentEntrypoint:t.context[t.contextProperty],hookedByMods:r(t.precomputed.hooks.map((o=>o.mod))),patchedByMods:Array.from(t.precomputed.patchesSources)});return o}const f=new Map;function u(o){f.get(o.name)!==o&&e(`Failed to unload mod '${o.name}': Not registered`),f.delete(o.name),o.loaded=!1,d();}function g(o,t){o&&"object"==typeof o||e("Failed to register mod: Expected info object, got "+typeof o),"string"==typeof o.name&&o.name||e("Failed to register mod: Expected name to be non-empty string, got "+typeof o.name);let r=`'${o.name}'`;"string"==typeof o.fullName&&o.fullName||e(`Failed to register mod ${r}: Expected fullName to be non-empty string, got ${typeof o.fullName}`),r=`'${o.fullName} (${o.name})'`,"string"!=typeof o.version&&e(`Failed to register mod ${r}: Expected version to be string, got ${typeof o.version}`),o.repository||(o.repository=void 0),void 0!==o.repository&&"string"!=typeof o.repository&&e(`Failed to register mod ${r}: Expected repository to be undefined or string, got ${typeof o.version}`),null==t&&(t={}),t&&"object"==typeof t||e(`Failed to register mod ${r}: Expected options to be undefined or object, got ${typeof t}`);const i=!0===t.allowReplace,a=f.get(o.name);a&&(a.allowReplace&&i||e(`Refusing to load mod ${r}: it is already loaded and doesn't allow being replaced.\nWas the mod loaded multiple times?`),u(a));const c=o=>{let e=g.patching.get(o.name);return e||(e={hooks:[],patches:new Map},g.patching.set(o.name,e)),e},s=(o,t)=>(...n)=>{var i,a;const c=null===(a=(i=m.errorReporterHooks).apiEndpointEnter)||void 0===a?void 0:a.call(i,o,g.name);g.loaded||e(`Mod ${r} attempted to call SDK function after being unloaded`);const s=t(...n);return null==c||c(),s},p={unload:s("unload",(()=>u(g))),hookFunction:s("hookFunction",((o,t,n)=>{"string"==typeof o&&o||e(`Mod ${r} failed to patch a function: Expected function name string, got ${typeof o}`);const i=l(o),a=c(i);"number"!=typeof t&&e(`Mod ${r} failed to hook function '${o}': Expected priority number, got ${typeof t}`),"function"!=typeof n&&e(`Mod ${r} failed to hook function '${o}': Expected hook function, got ${typeof n}`);const s={mod:g.name,priority:t,hook:n};return a.hooks.push(s),d(),()=>{const o=a.hooks.indexOf(s);o>=0&&(a.hooks.splice(o,1),d());}})),patchFunction:s("patchFunction",((o,t)=>{"string"==typeof o&&o||e(`Mod ${r} failed to patch a function: Expected function name string, got ${typeof o}`);const i=l(o),a=c(i);n(t)||e(`Mod ${r} failed to patch function '${o}': Expected patches object, got ${typeof t}`);for(const[n,i]of Object.entries(t))"string"==typeof i?a.patches.set(n,i):null===i?a.patches.delete(n):e(`Mod ${r} failed to patch function '${o}': Invalid format of patch '${n}'`);d();})),removePatches:s("removePatches",(o=>{"string"==typeof o&&o||e(`Mod ${r} failed to patch a function: Expected function name string, got ${typeof o}`);const t=l(o);c(t).patches.clear(),d();})),callOriginal:s("callOriginal",((o,t,n)=>{"string"==typeof o&&o||e(`Mod ${r} failed to call a function: Expected function name string, got ${typeof o}`);const i=l(o);return Array.isArray(t)||e(`Mod ${r} failed to call a function: Expected args array, got ${typeof t}`),i.original.apply(null!=n?n:globalThis,t)})),getOriginalHash:s("getOriginalHash",(o=>{"string"==typeof o&&o||e(`Mod ${r} failed to get hash: Expected function name string, got ${typeof o}`);return l(o).originalHash}))},g={name:o.name,fullName:o.fullName,version:o.version,repository:o.repository,allowReplace:i,api:p,loaded:!0,patching:new Map};return f.set(o.name,g),Object.freeze(p)}function h(){const o=[];for(const e of f.values())o.push({name:e.name,fullName:e.fullName,version:e.version,repository:e.repository});return o}let m;const y=void 0===window.bcModSdk?window.bcModSdk=function(){const e={version:o,apiVersion:1,registerMod:g,getModsInfo:h,getPatchingInfo:p,errorReporterHooks:Object.seal({apiEndpointEnter:null,hookEnter:null,hookChainExit:null})};return m=e,Object.freeze(e)}():(n(window.bcModSdk)||e("Failed to init Mod SDK: Name already in use"),1!==window.bcModSdk.apiVersion&&e(`Failed to init Mod SDK: Different version already loaded ('1.2.0' vs '${window.bcModSdk.version}')`),window.bcModSdk.version!==o&&alert(`Mod SDK warning: Loading different but compatible versions ('1.2.0' vs '${window.bcModSdk.version}')\nOne of mods you are using is using an old version of SDK. It will work for now but please inform author to update`),window.bcModSdk);return "undefined"!='object'&&(Object.defineProperty(exports,"__esModule",{value:!0}),exports.default=y),y}(); 
 	} (bcmodsdk));
 
 	var bcModSDKRef = /*@__PURE__*/getDefaultExportFromCjs(bcmodsdk);
@@ -81,7 +81,7 @@ var LLS = (function (exports) {
 	const bcModSDK = bcModSDKRef.registerMod({
 	    name: "LLS",
 	    fullName: "Lillys Little Scripts",
-	    version: LLS_VERSION.startsWith("v") ? LLS_VERSION.slice(1) : LLS_VERSION
+	    version: LLS_VERSION.startsWith("v") ? LLS_VERSION.slice(1) : LLS_VERSION,
 	});
 	function shuffleArray(array) {
 	    for (let i = array.length - 1; i > 0; i--) {
@@ -89,30 +89,33 @@ var LLS = (function (exports) {
 	        [array[i], array[j]] = [array[j], array[i]];
 	    }
 	}
-	function SendMessage(msg, target = null) {
+	function sendMessage(msg, target = null) {
 	    if (!msg)
 	        return;
 	    ServerSend("ChatRoomChat", {
 	        Type: "Chat",
 	        Content: msg,
-	        Target: target
+	        Target: target,
 	    });
 	}
 	//OLD (I think)
-	function SendActivityMessage(msg, target = null) {
+	function sendActivityMessage(msg, target = null) {
 	    if (!msg)
 	        return;
 	    ServerSend("ChatRoomChat", {
 	        Type: "Action",
 	        Content: "Beep",
 	        Target: target,
-	        Dictionary: [{ Tag: "Beep", Text: msg }]
+	        Dictionary: [{ Tag: "Beep", Text: msg }],
 	    });
 	    //ServerSend("ChatRoomChat", { Content: "Beep", Type: "Action", Dictionary: [{Tag: "Beep", Text: `${CharacterNickname(Player)} was dragged to the ground by a chain` }]})
 	}
-	function SendAction(action, sender = null) {
+	function sendAction(action, sender = null) {
 	    let msg = replace_template(action, sender);
-	    ServerSend("ChatRoomChat", { Content: "Beep", Type: "Action", Dictionary: [
+	    ServerSend("ChatRoomChat", {
+	        Content: "Beep",
+	        Type: "Action",
+	        Dictionary: [
 	            // EN
 	            { Tag: "Beep", Text: "msg" },
 	            // CN
@@ -123,7 +126,8 @@ var LLS = (function (exports) {
 	            { Tag: "Sonner", Text: "msg" },
 	            // Message itself
 	            { Tag: "msg", Text: msg },
-	        ] });
+	        ],
+	    });
 	}
 	function sendLLSMessage(msg) {
 	    const packet = {
@@ -132,7 +136,7 @@ var LLS = (function (exports) {
 	        Sender: Player.MemberNumber,
 	        Dictionary: [
 	            {
-	                message: msg
+	                message: msg,
 	            },
 	        ],
 	    };
@@ -145,14 +149,14 @@ var LLS = (function (exports) {
 	        Sender: Player.MemberNumber,
 	        Dictionary: [
 	            {
-	                message: msg
+	                message: msg,
 	            },
 	        ],
 	    };
 	    ServerSend("ChatRoomChat", packet);
 	}
-	function LLS_SendLocal(msg, time) {
-	    var bgColor = (Player.ChatSettings.ColorTheme.indexOf("Light") > -1) ? "#f2feff" : "#1c2829";
+	function sendLocal(msg, time) {
+	    var bgColor = Player.ChatSettings.ColorTheme.indexOf("Light") > -1 ? "#f2feff" : "#1c2829";
 	    let text = `<div style='background-color:${bgColor};'>${msg}</div>`;
 	    ChatRoomSendLocal(text);
 	}
@@ -170,11 +174,11 @@ var LLS = (function (exports) {
 	        }
 	    }
 	    return error ? -1 : memberNumber;*/
-	    return (_b = (_a = ChatRoomCharacter.find(c => c.Name.toLowerCase() == name.toLowerCase())) === null || _a === void 0 ? void 0 : _a.MemberNumber) !== null && _b !== void 0 ? _b : null;
+	    return (_b = (_a = ChatRoomCharacter.find((c) => c.Name.toLowerCase() == name.toLowerCase())) === null || _a === void 0 ? void 0 : _a.MemberNumber) !== null && _b !== void 0 ? _b : null;
 	}
 	function getChatroomCharacter(memberNumber) {
 	    var _a;
-	    return (_a = ChatRoomCharacter.find(c => c.MemberNumber == memberNumber)) !== null && _a !== void 0 ? _a : null;
+	    return (_a = ChatRoomCharacter.find((c) => c.MemberNumber == memberNumber)) !== null && _a !== void 0 ? _a : null;
 	}
 	function getCharacterName(memberNumber, defaultText = null) {
 	    var _a, _b;
@@ -221,8 +225,8 @@ var LLS = (function (exports) {
 	    }
 	}
 	function makePassword(length) {
-	    let result = '';
-	    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+	    let result = "";
+	    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	    const charactersLength = characters.length;
 	    let counter = 0;
 	    while (counter < length) {
@@ -269,24 +273,25 @@ var LLS = (function (exports) {
 	    if (!result) {
 	        result = {
 	            name: target,
-	            hooks: []
+	            hooks: [],
 	        };
 	        patchedFunctions.set(target, result);
 	    }
 	    return result;
 	}
-	function OnWhisper(priority, module, callback) {
+	function onWhisper(priority, module, callback) {
 	    hookFunction("ChatRoomMessage", priority, (args, next) => {
 	        var data = args[0];
 	        var sender = getChatroomCharacter(data.Sender);
 	        if (data.Type == "Whisper")
-	            if (callback(data, sender, data.Content, data.Dictionary) == "skipBCX") { //EWW, but it works
+	            if (callback(data, sender, data.Content, data.Dictionary) == "skipBCX") {
+	                //EWW, but it works
 	                return;
 	            }
 	        next(args);
 	    }, module);
 	}
-	function OnChat(priority, module, callback) {
+	function onChat(priority, module, callback) {
 	    hookFunction("ChatRoomMessage", priority, (args, next) => {
 	        var data = args[0];
 	        var sender = getChatroomCharacter(data.Sender);
@@ -295,7 +300,7 @@ var LLS = (function (exports) {
 	        next(args);
 	    }, module);
 	}
-	function OnAction(priority, module, callback) {
+	function onAction(priority, module, callback) {
 	    hookFunction("ChatRoomMessage", priority, (args, next) => {
 	        var data = args[0];
 	        var sender = getChatroomCharacter(data.Sender);
@@ -305,7 +310,7 @@ var LLS = (function (exports) {
 	        next(args);
 	    }, module);
 	}
-	function OnActivity(priority, module, callback) {
+	function onActivity(priority, module, callback) {
 	    hookFunction("ChatRoomMessage", priority, (args, next) => {
 	        var data = args[0];
 	        var sender = getChatroomCharacter(data.Sender);
@@ -315,18 +320,20 @@ var LLS = (function (exports) {
 	        next(args);
 	    }, module);
 	}
-	function OnSentMessage(priority, module, callback) {
+	function onSentMessage(priority, module, callback) {
 	    hookFunction("ServerSend", priority, (args, next) => {
 	        var data = args[1];
 	        var sender = getChatroomCharacter(data.Sender);
-	        if (args[0] === "ChatRoomChat")
-	            callback(data, sender, data.Content, data.Dictionary);
+	        if (args[0] === "ChatRoomChat") {
+	            if (!data.Content.startsWith("("))
+	                callback(data, sender, data.Content, data.Dictionary);
+	        }
 	        next(args);
 	    }, module);
 	}
 	function hookFunction(target, priority, hook, module = null) {
 	    const data = initPatchableFunction(target);
-	    if (data.hooks.some(h => h.hook === hook)) {
+	    if (data.hooks.some((h) => h.hook === hook)) {
 	        console.error(`LLS: Duplicate hook for "${target}"`, hook);
 	        return () => null;
 	    }
@@ -352,7 +359,7 @@ var LLS = (function (exports) {
 	        hook,
 	        priority,
 	        module,
-	        removeCallback
+	        removeCallback,
 	    });
 	    data.hooks.sort((a, b) => b.priority - a.priority);
 	    return removeCallback;
@@ -364,7 +371,7 @@ var LLS = (function (exports) {
 	    Player.OnlineSettings.LLS = Player.LLS;
 	    window.ServerAccountUpdate.QueueData({ OnlineSettings: Player.OnlineSettings });
 	    if (publish)
-	        (_a = getModule("CoreModule")) === null || _a === void 0 ? void 0 : _a.SendPublicPacket(false, "sync");
+	        (_a = getModule("CoreModule")) === null || _a === void 0 ? void 0 : _a.sendPublicPacket(false, "sync");
 	}
 	/** Checks if the `obj` is an object (not null, not array) */
 	function isObject(obj) {
@@ -384,19 +391,23 @@ var LLS = (function (exports) {
 	    var _a, _b, _c;
 	    (_c = (_a = window.bcx) === null || _a === void 0 ? void 0 : (_b = _a.getModApi("LLS")).on) === null || _c === void 0 ? void 0 : _c.call(_b, trigger, listener);
 	}
-	function BC_ItemToItemBundle(item) {
+	function itemToItemBundle(item) {
 	    return {
 	        Group: item.Asset.Group.Name,
 	        Name: item.Asset.Name,
 	        Color: item.Color,
 	        Craft: item.Craft,
 	        Difficulty: item.Difficulty,
-	        Property: item.Property
+	        Property: item.Property,
 	    };
 	}
 	//thank you BCX :>
 	function smartGetAssetGroup(item) {
-	    const group = AssetGroup.includes(item) ? item : Asset.includes(item) ? item.Group : item.Asset.Group;
+	    const group = AssetGroup.includes(item)
+	        ? item
+	        : Asset.includes(item)
+	            ? item.Group
+	            : item.Asset.Group;
 	    if (!AssetGroup.includes(group)) {
 	        throw new Error("Failed to convert item to group");
 	    }
@@ -412,12 +423,12 @@ var LLS = (function (exports) {
 	    const group = smartGetAssetGroup(item);
 	    return group.Category === "Appearance" && group.AllowNone && group.Clothing && group.BodyCosplay;
 	}
-	function BC_ItemsToItemBundles(items) {
-	    return items.filter(i => !!i).map(i => BC_ItemToItemBundle(i));
+	function itemsToItemBundles(items) {
+	    return items.filter((i) => !!i).map((i) => itemToItemBundle(i));
 	}
-	function GetDelimitedList(source, delimiter = ",") {
+	function getDelimitedList(source, delimiter = ",") {
 	    var _a, _b;
-	    return (_b = (_a = source === null || source === void 0 ? void 0 : source.split(delimiter)) === null || _a === void 0 ? void 0 : _a.filter(entry => !!entry).map(entry => entry.toLocaleLowerCase())) !== null && _b !== void 0 ? _b : [];
+	    return ((_b = (_a = source === null || source === void 0 ? void 0 : source.split(delimiter)) === null || _a === void 0 ? void 0 : _a.filter((entry) => !!entry).map((entry) => entry.toLocaleLowerCase())) !== null && _b !== void 0 ? _b : []);
 	}
 	function isPhraseInString(string, phrase, ignoreOOC = false) {
 	    if (!string || string === "")
@@ -433,7 +444,7 @@ var LLS = (function (exports) {
 	        msg = "";
 	    for (let i = 0; i < msg.length; i++) {
 	        let char = msg.charAt(i);
-	        if (char == "(" || char == '）')
+	        if (char == "(" || char == "）")
 	            Par = true;
 	        if (!Par)
 	            result += char;
@@ -444,7 +455,7 @@ var LLS = (function (exports) {
 	}
 	function escapeRegExp(string) {
 	    var _a;
-	    return (_a = string === null || string === void 0 ? void 0 : string.toLocaleLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) !== null && _a !== void 0 ? _a : ""; // $& means the whole matched string
+	    return (_a = string === null || string === void 0 ? void 0 : string.toLocaleLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) !== null && _a !== void 0 ? _a : ""; // $& means the whole matched string
 	}
 	/*export function hookLSCGMagic(trigger: "curseTrigger", listener: (v: { action: "remove" | "add" | "swap" | "update" | "color" | "autoremove"; group: string; }) => void){
 	    window.LSCG?.getModApi("LLS").on?.(trigger, listener);
@@ -490,19 +501,19 @@ var LLS = (function (exports) {
 	    get defaultSettings() {
 	        return null;
 	    }
-	    load() {
+	    Load() {
 	        // Empty
 	    }
-	    run() {
+	    Run() {
 	        // Empty
 	    }
-	    unload() {
+	    Unload() {
 	        // Empty
 	    }
-	    reload() {
+	    Reload() {
 	        // Empty
 	    }
-	    safeword() {
+	    Safeword() {
 	        // Empty
 	    }
 	}
@@ -763,7 +774,7 @@ var LLS = (function (exports) {
 	        // Empty
 	    }
 	    Tooltip(text) {
-	        drawTooltip(300, 850, 1400, text, "left");
+	        DrawTooltip(300, 850, 1400, text, "left");
 	    }
 	    DrawCheckbox(label, description, value, order, disabled = false) {
 	        var isHovering = MouseIn(this.getXPos(order), this.getYPos(order) - 32, 600, 64);
@@ -902,12 +913,12 @@ var LLS = (function (exports) {
 	        if (MouseIn(1520, 720, 200, 80))
 	            return this.Exit();
 	        if (MouseIn(300, 720, 200, 80) && Date.now() >= this.allowedConfirmTime)
-	            return this.Confirm();
+	            return this.confirm();
 	    }
-	    Confirm() {
+	    confirm() {
 	        var _a;
 	        this.allowedConfirmTime = null;
-	        (_a = getModule("CommandModule")) === null || _a === void 0 ? void 0 : _a.EmergencyRelease();
+	        (_a = getModule("CommandModule")) === null || _a === void 0 ? void 0 : _a.emergencyRelease();
 	        this.Exit();
 	    }
 	}
@@ -1060,7 +1071,7 @@ var LLS = (function (exports) {
 	            enabled: true,
 	        };
 	    }
-	    load() {
+	    Load() {
 	        // At that point all other modules have been initialized, build the list of their screens
 	        for (const module of modules()) {
 	            if (!module.settingsScreen)
@@ -1071,7 +1082,7 @@ var LLS = (function (exports) {
 	    }
 	}
 	GUI.instance = null;
-	function drawTooltip(x, y, width, text, align) {
+	function DrawTooltip(x, y, width, text, align) {
 	    const canvas = MainCanvas;
 	    const bak = canvas.textAlign;
 	    canvas.textAlign = align;
@@ -1149,7 +1160,7 @@ var LLS = (function (exports) {
 	            enabled: false,
 	        };
 	    }
-	    SendPublicPacket(replyRequested, type = "init") {
+	    sendPublicPacket(replyRequested, type = "init") {
 	        sendLLSMessage({
 	            version: LLS_VERSION,
 	            type: type,
@@ -1158,13 +1169,13 @@ var LLS = (function (exports) {
 	            reply: replyRequested,
 	        });
 	    }
-	    load() {
+	    Load() {
 	        hookFunction("ChatRoomSync", 1, (args, next) => {
-	            this.SendPublicPacket(true);
+	            this.sendPublicPacket(true);
 	            return next(args);
 	        }, ModuleCategory.Core);
 	        hookFunction("ChatRoomMessage", 1, (args, next) => {
-	            this.CheckForPublicPacket(args[0]);
+	            this.checkForPublicPacket(args[0]);
 	            return next(args);
 	        }, ModuleCategory.Core);
 	        hookFunction("DialogClick", 1, (args, next) => {
@@ -1185,14 +1196,14 @@ var LLS = (function (exports) {
 	        DrawImageResize("Icons/Online.png", X + 2, Y + 2, Width - 4, Height - 4);
 	        DrawLineCorner(X + 2, Y + 2, X + Width - 2, Y + Height - 2, X + 2, Y + 2, 2, "Black");
 	    }*/
-	    run() {
+	    Run() {
 	        if (ServerPlayerIsInChatRoom()) {
 	        }
 	    }
-	    unload() {
+	    Unload() {
 	        removeAllHooksByModule(ModuleCategory.Core);
 	    }
-	    CheckForPublicPacket(data) {
+	    checkForPublicPacket(data) {
 	        if (data.Sender != Player.MemberNumber &&
 	            data.Type == "Hidden" &&
 	            data.Content == "LLSMsg" &&
@@ -1205,27 +1216,27 @@ var LLS = (function (exports) {
 	                    this.Init(C, msg);
 	                    break;
 	                case "sync":
-	                    this.Sync(C, msg);
+	                    this.sync(C, msg);
 	                    break;
 	                case "command":
-	                    this.Command(C, msg);
+	                    this.command(C, msg);
 	                    break;
 	            }
 	        }
 	    }
 	    Init(Sender, msg) {
-	        this.Sync(Sender, msg);
+	        this.sync(Sender, msg);
 	    }
-	    Sync(Sender, msg) {
+	    sync(Sender, msg) {
 	        var _a, _b;
 	        if (!Sender)
 	            return;
 	        Sender.LLS = Object.assign((_a = Sender.LLS) !== null && _a !== void 0 ? _a : {}, (_b = msg.settings) !== null && _b !== void 0 ? _b : {});
 	        if (msg.reply) {
-	            this.SendPublicPacket(false, msg.type);
+	            this.sendPublicPacket(false, msg.type);
 	        }
 	    }
-	    Command(Sender, msg) {
+	    command(Sender, msg) {
 	        var _a;
 	        if (!msg.command || msg.target != Player.MemberNumber)
 	            return;
@@ -1236,7 +1247,7 @@ var LLS = (function (exports) {
 	            case "remote":
 	                Object.assign(Player.LLS.ArtifactModule, (_a = msg.settings) === null || _a === void 0 ? void 0 : _a.ArtifactModule);
 	                settingsSave(true);
-	                LLS_SendLocal(`${!Sender ? "Someone" : CharacterNickname(Sender)} has accessed your remote settings!`);
+	                sendLocal(`${!Sender ? "Someone" : CharacterNickname(Sender)} has accessed your remote settings!`);
 	                break;
 	        }
 	    }
@@ -1258,7 +1269,7 @@ var LLS = (function (exports) {
 	                        helpLines.push(`<br><b>/lls ${c.Tag}</b> ${c.Description}`);
 	                    });
 	                    let helpText = `<b>- Lillys Little Scrips -</b><br>${helpLines.join()}<br>`;
-	                    LLS_SendLocal(helpText);
+	                    sendLocal(helpText);
 	                },
 	            },
 	            {
@@ -1305,7 +1316,7 @@ var LLS = (function (exports) {
 	                                else if (parsed[1] == "private")
 	                                    this.cards.printLog(true);
 	                                else
-	                                    LLS_SendLocal("Wrong usage");
+	                                    sendLocal("Wrong usage");
 	                                break;
 	                        }
 	                    }
@@ -1315,7 +1326,7 @@ var LLS = (function (exports) {
 	                            "<br><b>/lls cards dealopen (player) [number]</b>: Deals [number] cards to the player face up. No number means 1" +
 	                            "<br><b>/lls cards log (private/public) </b>: Prints the log" +
 	                            "<br><b>/lls cards show </b>: Deals an open card";
-	                        LLS_SendLocal(`<b>- Lillys Little Scrips -</b><br>Cards: ${text}<br>`);
+	                        sendLocal(`<b>- Lillys Little Scrips -</b><br>Cards: ${text}<br>`);
 	                    }
 	                },
 	            },
@@ -1326,13 +1337,13 @@ var LLS = (function (exports) {
 	                    if (parsed.length == 1) {
 	                        switch (parsed[0].toLowerCase()) {
 	                            case "hide":
-	                                this.misc.CharacterToggleVisibility("all", Player);
+	                                this.misc.characterToggleVisibility("all", Player);
 	                                break;
 	                            case "clothes":
-	                                this.misc.CharacterToggleVisibility("bodyOnly", Player);
+	                                this.misc.characterToggleVisibility("bodyOnly", Player);
 	                                break;
 	                            case "show":
-	                                this.misc.CharacterToggleVisibility("visible", Player);
+	                                this.misc.characterToggleVisibility("visible", Player);
 	                                break;
 	                        }
 	                    }
@@ -1341,7 +1352,7 @@ var LLS = (function (exports) {
 	                            "<br><b>/lls visibility hide</b>: Hides your character" +
 	                            "<br><b>/lls visibility show</b>: Shows your character" +
 	                            "<br><b>/lls visibility clothes</b>: Only shows your clothes";
-	                        LLS_SendLocal(`<b>- Lillys Little Scrips -</b><br>Visibility: ${text}<br>`);
+	                        sendLocal(`<b>- Lillys Little Scrips -</b><br>Visibility: ${text}<br>`);
 	                    }
 	                },
 	            },
@@ -1374,7 +1385,7 @@ var LLS = (function (exports) {
 	        }
 	        return targetC;
 	    }
-	    load() {
+	    Load() {
 	        CommandCombine([
 	            {
 	                Tag: "lls",
@@ -1393,13 +1404,13 @@ var LLS = (function (exports) {
 	            },
 	        ]);
 	    }
-	    unload() {
+	    Unload() {
 	        removeAllHooksByModule(ModuleCategory.Commands);
 	    }
-	    EmergencyRelease() {
+	    emergencyRelease() {
 	        // Run Safeword action on all modules
 	        for (const m of modules()) {
-	            m.safeword();
+	            m.Safeword();
 	            if (!!m.settingsStorage)
 	                Player.LLS[m.settingsStorage] = m.defaultSettings;
 	        }
@@ -1421,7 +1432,7 @@ var LLS = (function (exports) {
 	            });
 	        });
 	        shuffleArray(cardDeck);
-	        SendActivityMessage(`${Player.Nickname ? Player.Nickname : Player.Name} took the remaining ${cardDeck.length} cards from the deck and shuffled all cards for a new deck.`);
+	        sendActivityMessage(`${Player.Nickname ? Player.Nickname : Player.Name} took the remaining ${cardDeck.length} cards from the deck and shuffled all cards for a new deck.`);
 	    }
 	    dealCard(target = null, open = false) {
 	        var _a, _b;
@@ -1433,7 +1444,7 @@ var LLS = (function (exports) {
 	            return;
 	        if (target) {
 	            if (open) {
-	                SendActivityMessage(`${Player.Nickname ? Player.Nickname : Player.Name} dealt this card openly to ${getCharacterName(target, "unknown")}: ${card.join("")}`);
+	                sendActivityMessage(`${Player.Nickname ? Player.Nickname : Player.Name} dealt this card openly to ${getCharacterName(target, "unknown")}: ${card.join("")}`);
 	                if (dealersLog.has(target)) {
 	                    (_a = dealersLog.get(target)) === null || _a === void 0 ? void 0 : _a.push(card);
 	                }
@@ -1442,7 +1453,7 @@ var LLS = (function (exports) {
 	                }
 	            }
 	            else {
-	                SendActivityMessage(`${Player.Nickname ? Player.Nickname : Player.Name} dealt you this card face down: ${card.join("")}`, target);
+	                sendActivityMessage(`${Player.Nickname ? Player.Nickname : Player.Name} dealt you this card face down: ${card.join("")}`, target);
 	                if (dealersLog.has(target)) {
 	                    (_b = dealersLog.get(target)) === null || _b === void 0 ? void 0 : _b.push(card);
 	                }
@@ -1452,7 +1463,7 @@ var LLS = (function (exports) {
 	            }
 	        }
 	        else {
-	            SendActivityMessage(`${Player.Nickname ? Player.Nickname : Player.Name} openly drew this card face up: ${card.join("")}`, target);
+	            sendActivityMessage(`${Player.Nickname ? Player.Nickname : Player.Name} openly drew this card face up: ${card.join("")}`, target);
 	        }
 	    }
 	    dealCards(targets, numberOfCards, open = false) {
@@ -1521,13 +1532,13 @@ var LLS = (function (exports) {
 	            message = message.slice(0, -2);
 	        }
 	        if (priv) {
-	            LLS_SendLocal(message);
+	            sendLocal(message);
 	        }
 	        else {
-	            SendMessage(message);
+	            sendMessage(message);
 	        }
 	    }
-	    unload() {
+	    Unload() {
 	        removeAllHooksByModule(ModuleCategory.Commands);
 	    }
 	}
@@ -1537,7 +1548,7 @@ var LLS = (function (exports) {
 	        super(...arguments);
 	        this.private = false;
 	    }
-	    load() {
+	    Load() {
 	        hookFunction("CraftingRun", 1, (args, next) => {
 	            next(args);
 	            const C = Player;
@@ -1575,7 +1586,7 @@ var LLS = (function (exports) {
 	            }
 	        }, ModuleCategory.Crafts);
 	    }
-	    unload() {
+	    Unload() {
 	        removeAllHooksByModule(ModuleCategory.Commands);
 	    }
 	}
@@ -1589,8 +1600,8 @@ var LLS = (function (exports) {
 	            orgasmSkip: false,
 	        };
 	    }
-	    safeword() { }
-	    load() {
+	    Safeword() { }
+	    Load() {
 	        // To draw the button for orgasm resist
 	        hookFunction("ChatRoomRun", 1, (args, next) => {
 	            next(args);
@@ -1625,7 +1636,7 @@ var LLS = (function (exports) {
 	            }
 	        });
 	    }
-	    CharacterToggleVisibility(mode, C) {
+	    characterToggleVisibility(mode, C) {
 	        let script = InventoryWear(C, "Script", "ItemScript");
 	        if (!script)
 	            return;
@@ -1643,7 +1654,7 @@ var LLS = (function (exports) {
 	        }
 	        CharacterScriptRefresh(C);
 	    }
-	    unload() { }
+	    Unload() { }
 	}
 
 	class GuiArtifact extends GuiSubscreen {
@@ -1857,23 +1868,24 @@ var LLS = (function (exports) {
 	    get settingsScreen() {
 	        return GuiArtifact;
 	    }
-	    load() {
-	        OnChat(1, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
+	    Load() {
+	        onChat(1, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
 	            var _a;
 	            let collarSettings = (_a = Player.LLS) === null || _a === void 0 ? void 0 : _a.ArtifactModule;
 	            if (!collarSettings || !collarSettings.petsuitCollarSetting.enabled || !collarSettings.petsuitCollarSetting.speechEnabled)
 	                return;
-	            if (isPhraseInString(msg.toLowerCase(), collarSettings.petsuitCollarSetting.trigger.toLowerCase()) && this.WearingPetsuitCollar(Player)) {
+	            if (isPhraseInString(msg.toLowerCase(), collarSettings.petsuitCollarSetting.trigger.toLowerCase()) && this.wearingPetsuitCollar(Player)) {
 	                if ((sender === null || sender === void 0 ? void 0 : sender.IsPlayer()) && !collarSettings.petsuitCollarSetting.allowSelfTrigger)
 	                    return;
 	                else if (sender === null || sender === void 0 ? void 0 : sender.IsPlayer())
 	                    this.petsuitCollarToggle(Player);
-	                else if (this.AllowedPetsuitCollarMember(sender)) {
+	                else if (this.isAllowedPetsuitCollarMember(sender)) {
 	                    this.petsuitCollarToggle(Player);
 	                }
 	            }
+	            return;
 	        });
-	        OnWhisper(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
+	        onWhisper(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
 	            var _a;
 	            let collarSettings = (_a = Player.LLS) === null || _a === void 0 ? void 0 : _a.ArtifactModule;
 	            if (!collarSettings || !collarSettings.petsuitCollarSetting.enabled)
@@ -1881,34 +1893,34 @@ var LLS = (function (exports) {
 	            else if ((sender === null || sender === void 0 ? void 0 : sender.IsPlayer()) && petsuitActivated)
 	                return;
 	            else if (msg.toLowerCase().startsWith("!petsuitcollar") &&
-	                (this.AllowedPetsuitCollarMember(sender) || (sender === null || sender === void 0 ? void 0 : sender.IsPlayer)) &&
-	                this.WearingPetsuitCollar(Player)) {
+	                (this.isAllowedPetsuitCollarMember(sender) || (sender === null || sender === void 0 ? void 0 : sender.IsPlayer)) &&
+	                this.wearingPetsuitCollar(Player)) {
 	                this.petsuitCollarToggle(Player);
 	                return "skipBCX";
 	            }
 	            return;
 	        });
-	        OnActivity(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
+	        onActivity(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
 	            if (msg == "ChatSelf-ItemArms-StruggleArms" && sender) {
 	                this.ropeOfTighteningAction(sender.IsPlayer() ? Player : sender);
 	            }
+	            return;
 	        });
-	        OnSentMessage(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
+	        onSentMessage(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
 	            if (data.Type === "Chat") {
 	                sender = sender ? sender : Player;
-	                this.CatSpeech(data);
+	                this.catSpeech(data);
 	            }
 	            return;
 	        });
 	    }
-	    CatSpeech(data) {
+	    catSpeech(data) {
 	        var _a, _b;
 	        let catSpeech = (_b = (_a = Player.LLS) === null || _a === void 0 ? void 0 : _a.ArtifactModule) === null || _b === void 0 ? void 0 : _b.catSpeechEnabled;
 	        if (!catSpeech)
 	            return;
-	        if (!this.WearingCatSpeechMask(Player))
+	        if (!this.wearingCatSpeechMask(Player))
 	            return;
-	        let message = data.Content.split(" ");
 	        data.Content = data.Content.replace(/\b\S+\b/g, (str) => {
 	            if (str.length <= 3)
 	                return "mew";
@@ -1919,7 +1931,7 @@ var LLS = (function (exports) {
 	        });
 	        return;
 	    }
-	    WearingCatSpeechMask(C) {
+	    wearingCatSpeechMask(C) {
 	        var gag1 = InventoryGet(C, "ItemMouth");
 	        var gag2 = InventoryGet(C, "ItemMouth2");
 	        var gag3 = InventoryGet(C, "ItemMouth3");
@@ -1931,7 +1943,7 @@ var LLS = (function (exports) {
 	            return true;
 	        return false;
 	    }
-	    WearingPetsuitCollar(C) {
+	    wearingPetsuitCollar(C) {
 	        var _a, _b, _c, _d, _e, _f;
 	        var collar = InventoryGet(C, "ItemNeck");
 	        let collarSettings = (_a = C.LLS) === null || _a === void 0 ? void 0 : _a.ArtifactModule;
@@ -1959,14 +1971,14 @@ var LLS = (function (exports) {
 	            return;
 	        // If configured rope is not crafted, let any inherited rope work.
 	        if (!ropeSettings.ropeOfTightening.creator) {
-	            SendAction("The rope around %NAME%'s arms tightens by itself, holding %POSSESSIVE% arms in place.");
+	            sendAction("The rope around %NAME%'s arms tightens by itself, holding %POSSESSIVE% arms in place.");
 	            return;
 	        }
 	        else {
 	            var ropeName = (_d = (_c = (_b = rope === null || rope === void 0 ? void 0 : rope.Craft) === null || _b === void 0 ? void 0 : _b.Name) !== null && _c !== void 0 ? _c : rope === null || rope === void 0 ? void 0 : rope.Asset.Name) !== null && _d !== void 0 ? _d : "";
 	            var ropeCreator = (_f = (_e = rope === null || rope === void 0 ? void 0 : rope.Craft) === null || _e === void 0 ? void 0 : _e.MemberNumber) !== null && _f !== void 0 ? _f : -1;
 	            if (ropeName == ropeSettings.ropeOfTightening.name && ropeCreator == ropeSettings.ropeOfTightening.creator) {
-	                SendAction("The rope around %NAME%'s arms tightens by itself, holding %POSSESSIVE% arms in place.");
+	                sendAction("The rope around %NAME%'s arms tightens by itself, holding %POSSESSIVE% arms in place.");
 	                return;
 	            }
 	        }
@@ -2009,7 +2021,7 @@ var LLS = (function (exports) {
 	        if (suit && suit.Property && suit.Property.TypeRecord)
 	            suit.Property.TypeRecord.typed = 1;
 	        //if(suit && suit.Property) suit.Property.Hide = ["Bra", "Panties", "ItemNipples","ItemNipplesPiercings", "ItemBreasts", "Socks", "Suit", "SuitLower", "SocksLeft", "SocksRight"];
-	        clothesSafe = LZString.compressToBase64(JSON.stringify(BC_ItemsToItemBundles(C.Appearance)));
+	        clothesSafe = LZString.compressToBase64(JSON.stringify(itemsToItemBundles(C.Appearance)));
 	        let accessory = InventoryGet(C, "ClothAccessory");
 	        let socksLeft = InventoryGet(C, "SocksLeft");
 	        let socksRight = InventoryGet(C, "SocksRight");
@@ -2024,7 +2036,7 @@ var LLS = (function (exports) {
 	        }
 	        lockItem(C, InventoryGet(C, "ItemArms"), "PasswordPadlock");
 	        ChatRoomCharacterUpdate(C);
-	        SendAction("The collar on %NAME%'s neck releases a strange black fluid, which runs over %POSSESSIVE% body, covering it in a shiny black material that forms a petsuit.");
+	        sendAction("The collar on %NAME%'s neck releases a strange black fluid, which runs over %POSSESSIVE% body, covering it in a shiny black material that forms a petsuit.");
 	        petsuitActivated = true;
 	    }
 	    petsuitCollarDeactivate(C) {
@@ -2046,18 +2058,18 @@ var LLS = (function (exports) {
 	            }
 	        });
 	        ChatRoomCharacterUpdate(C);
-	        SendAction("The petsuit on %NAME% turns back into the black fluid and returns into %POSSESSIVE% collar.");
+	        sendAction("The petsuit on %NAME% turns back into the black fluid and returns into %POSSESSIVE% collar.");
 	        petsuitActivated = false;
 	    }
 	    get allowedPetsuitCollarMembers() {
-	        let stringList = GetDelimitedList(this.settings.petsuitCollarSetting.allowedMembers, ",");
+	        let stringList = getDelimitedList(this.settings.petsuitCollarSetting.allowedMembers, ",");
 	        let memberList = stringList
 	            .filter((str) => !!str && +str === +str)
 	            .map((str) => parseInt(str))
 	            .filter((id) => id != Player.MemberNumber);
 	        return memberList;
 	    }
-	    AllowedPetsuitCollarMember(member) {
+	    isAllowedPetsuitCollarMember(member) {
 	        var _a;
 	        if (!member)
 	            return false;
@@ -2074,15 +2086,15 @@ var LLS = (function (exports) {
 	            return this.allowedPetsuitCollarMembers.indexOf((_a = member.MemberNumber) !== null && _a !== void 0 ? _a : 0) >= 0;
 	        return true;
 	    }
-	    unload() {
+	    Unload() {
 	        removeAllHooksByModule(ModuleCategory.Commands);
 	    }
-	    safeword() {
+	    Safeword() {
 	        if (petsuitActivated) {
 	            this.petsuitCollarDeactivate(Player);
 	        }
 	    }
-	    ValidationVerifyCraftData(Craft, Asset) {
+	    validationVerifyCraftData(Craft, Asset) {
 	        if (Craft === undefined) {
 	            return {
 	                result: undefined,
@@ -2205,7 +2217,7 @@ var LLS = (function (exports) {
 	    }
 	    get allowedMemberIds() {
 	        var _a;
-	        let idList = (_a = GetDelimitedList(this.settings.petsuitCollarSetting.allowedMembers)
+	        let idList = (_a = getDelimitedList(this.settings.petsuitCollarSetting.allowedMembers)
 	            .map((id) => +id)
 	            .filter((id) => id > 0)) !== null && _a !== void 0 ? _a : [];
 	        if (this.settings.petsuitCollarSetting.petsuitCollar && this.settings.petsuitCollarSetting.petsuitCollar.creator > 0)
@@ -2492,7 +2504,7 @@ var LLS = (function (exports) {
 	    characterHasMod(C) {
 	        return !!C.LLS;
 	    }
-	    load() {
+	    Load() {
 	        hookFunction("InformationSheetRun", 11, (args, next) => {
 	            var _a;
 	            if ((_a = window.bcx) === null || _a === void 0 ? void 0 : _a.inBcxSubscreen())
@@ -2533,7 +2545,7 @@ var LLS = (function (exports) {
 	            return next(args);
 	        }, ModuleCategory.RemoteUi);
 	    }
-	    unload() {
+	    Unload() {
 	        removeAllHooksByModule(ModuleCategory.RemoteUi);
 	    }
 	}
@@ -2627,21 +2639,21 @@ var LLS = (function (exports) {
 	        m.init();
 	    }
 	    for (const m of modules()) {
-	        m.load();
+	        m.Load();
 	    }
 	    for (const m of modules()) {
-	        m.run();
+	        m.Run();
 	    }
 	    hookFunction("ChatRoomSafewordRevert", 1, (args, next) => {
 	        for (const m of modules()) {
-	            m.safeword();
+	            m.Safeword();
 	        }
 	        return next(args);
 	    });
 	    hookFunction("ChatRoomSafewordRelease", 1, (args, next) => {
 	        var ret = next(args);
 	        for (const m of modules()) {
-	            m.safeword();
+	            m.Safeword();
 	        }
 	        return ret;
 	    });
@@ -2656,7 +2668,7 @@ var LLS = (function (exports) {
 	}
 	function unloadModules() {
 	    for (const m of modules()) {
-	        m.unload();
+	        m.Unload();
 	    }
 	}
 	initWait();

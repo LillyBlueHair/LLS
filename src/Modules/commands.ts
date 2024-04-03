@@ -1,7 +1,7 @@
 import { BaseModule } from "base";
 import { getModule, modules } from "modules";
 import { ModuleCategory } from "Settings/settingDefinitions";
-import { getCharacterNumber, getChatroomCharacter, LLS_SendLocal, removeAllHooksByModule, settingsSave } from "../utils";
+import { getCharacterNumber, getChatroomCharacter, sendLocal, removeAllHooksByModule, settingsSave } from "../utils";
 import { CardsModule } from "./cards";
 import { MiscModule } from "./misc";
 
@@ -26,7 +26,7 @@ export class CommandModule extends BaseModule {
                     helpLines.push(`<br><b>/lls ${c.Tag}</b> ${c.Description}`);
                 });
                 let helpText = `<b>- Lillys Little Scrips -</b><br>${helpLines.join()}<br>`;
-                LLS_SendLocal(helpText);
+                sendLocal(helpText);
             },
         },
         {
@@ -69,7 +69,7 @@ export class CommandModule extends BaseModule {
                         case "log":
                             if (parsed[1] == "public") this.cards.printLog(false);
                             else if (parsed[1] == "private") this.cards.printLog(true);
-                            else LLS_SendLocal("Wrong usage");
+                            else sendLocal("Wrong usage");
                             break;
                     }
                 } else {
@@ -79,7 +79,7 @@ export class CommandModule extends BaseModule {
                         "<br><b>/lls cards dealopen (player) [number]</b>: Deals [number] cards to the player face up. No number means 1" +
                         "<br><b>/lls cards log (private/public) </b>: Prints the log" +
                         "<br><b>/lls cards show </b>: Deals an open card";
-                    LLS_SendLocal(`<b>- Lillys Little Scrips -</b><br>Cards: ${text}<br>`);
+                    sendLocal(`<b>- Lillys Little Scrips -</b><br>Cards: ${text}<br>`);
                 }
             },
         },
@@ -90,13 +90,13 @@ export class CommandModule extends BaseModule {
                 if (parsed.length == 1) {
                     switch (parsed[0].toLowerCase()) {
                         case "hide":
-                            this.misc.CharacterToggleVisibility("all", Player);
+                            this.misc.characterToggleVisibility("all", Player);
                             break;
                         case "clothes":
-                            this.misc.CharacterToggleVisibility("bodyOnly", Player);
+                            this.misc.characterToggleVisibility("bodyOnly", Player);
                             break;
                         case "show":
-                            this.misc.CharacterToggleVisibility("visible", Player);
+                            this.misc.characterToggleVisibility("visible", Player);
                             break;
                     }
                 } else {
@@ -105,7 +105,7 @@ export class CommandModule extends BaseModule {
                         "<br><b>/lls visibility hide</b>: Hides your character" +
                         "<br><b>/lls visibility show</b>: Shows your character" +
                         "<br><b>/lls visibility clothes</b>: Only shows your clothes";
-                    LLS_SendLocal(`<b>- Lillys Little Scrips -</b><br>Visibility: ${text}<br>`);
+                    sendLocal(`<b>- Lillys Little Scrips -</b><br>Visibility: ${text}<br>`);
                 }
             },
         },
@@ -135,7 +135,7 @@ export class CommandModule extends BaseModule {
         return targetC;
     }
 
-    load(): void {
+    Load(): void {
         CommandCombine([
             {
                 Tag: "lls",
@@ -154,14 +154,14 @@ export class CommandModule extends BaseModule {
         ]);
     }
 
-    unload(): void {
+    Unload(): void {
         removeAllHooksByModule(ModuleCategory.Commands);
     }
 
-    EmergencyRelease() {
+    emergencyRelease() {
         // Run Safeword action on all modules
         for (const m of modules()) {
-            m.safeword();
+            m.Safeword();
             if (!!m.settingsStorage) (<any>Player.LLS)[m.settingsStorage] = m.defaultSettings;
         }
         settingsSave(true);

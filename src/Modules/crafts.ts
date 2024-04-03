@@ -5,7 +5,7 @@ import { hookFunction, removeAllHooksByModule } from "utils";
 
 export class CraftsModule extends BaseModule {
     private: boolean = false;
-    load(): void {
+    Load(): void {
         hookFunction("CraftingRun", 1, (args, next) => {
             next(args)
             const C = Player;
@@ -45,7 +45,7 @@ export class CraftsModule extends BaseModule {
         }, ModuleCategory.Crafts);
     }
 
-	unload(): void {
+	Unload(): void {
         removeAllHooksByModule(ModuleCategory.Commands);
     }
 }

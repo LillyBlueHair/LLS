@@ -2,7 +2,7 @@ import { settingsSave } from "utils";
 import { BaseSettingsModel } from "./Models/base";
 import { SETTING_FUNC_NAMES, SETTING_FUNC_PREFIX, SETTING_NAME_PREFIX, setSubscreen } from "./settingDefinitions";
 import { BaseModule } from "base";
-import { drawTooltip, GUI } from "./settingUtils";
+import { DrawTooltip, GUI } from "./settingUtils";
 
 export interface Setting {
 	type: "checkbox" | "text" | "number" | "label" | "colorpicker";
@@ -258,7 +258,7 @@ export abstract class GuiSubscreen {
 	}
 
 	Tooltip(text: string) {
-		drawTooltip(300, 850, 1400, text, "left");
+		DrawTooltip(300, 850, 1400, text, "left");
 	}
 
 	DrawCheckbox(label: string, description: string, value: boolean, order: number, disabled: boolean = false) {
