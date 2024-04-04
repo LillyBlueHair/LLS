@@ -91,21 +91,13 @@ export class RemotePetsuitCollar extends RemoteGuiSubscreen {
 					disabled: !this.settings.petsuitCollarSetting.enabled,
 				},
 				<Setting>{
-					type: "checkbox",
-					label: "Enable Voice Commands:",
-					description: "Enables voice commands for the petsuit collar.",
-					setting: () => this.settings.petsuitCollarSetting.speechEnabled ?? false,
-					setSetting: (val) => (this.settings.petsuitCollarSetting.speechEnabled = val),
-					disabled: !this.settings.petsuitCollarSetting.enabled,
-				},
-				<Setting>{
 					type: "text",
 					id: "petsuitCollar_trigger",
 					label: "Trigger:",
 					description: "Sets the trigger word/sentence for the petsuit collar.",
 					setting: () => this.settings.petsuitCollarSetting.trigger ?? "",
 					setSetting: (val) => (this.settings.petsuitCollarSetting.trigger = val),
-					disabled: !this.settings.petsuitCollarSetting.speechEnabled || !this.settings.petsuitCollarSetting.enabled,
+					disabled: !this.settings.petsuitCollarSetting.enabled,
 				},
 				<Setting>{
 					type: "checkbox",
@@ -113,7 +105,7 @@ export class RemotePetsuitCollar extends RemoteGuiSubscreen {
 					description: "Allows the wearer of the collar to trigger the speech commands.",
 					setting: () => this.settings.petsuitCollarSetting.allowSelfTrigger ?? false,
 					setSetting: (val) => (this.settings.petsuitCollarSetting.allowSelfTrigger = val),
-					disabled: !this.settings.petsuitCollarSetting.speechEnabled || !this.settings.petsuitCollarSetting.enabled,
+					disabled: !this.settings.petsuitCollarSetting.enabled,
 				},
 				<Setting>{
 					type: "checkbox",

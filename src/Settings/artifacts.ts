@@ -64,21 +64,13 @@ export class GuiArtifact extends GuiSubscreen {
 					disabled: !this.settings.petsuitCollarSetting.enabled || this.settings.petsuitCollarSetting.locked,
 				},
 				<Setting>{
-					type: "checkbox",
-					label: "Enable Voice Commands:",
-					description: "Enables voice commands for the petsuit collar.",
-					setting: () => this.settings.petsuitCollarSetting.speechEnabled ?? false,
-					setSetting: (val) => (this.settings.petsuitCollarSetting.speechEnabled = val),
-					disabled: !this.settings.petsuitCollarSetting.enabled || this.settings.petsuitCollarSetting.locked,
-				},
-				<Setting>{
 					type: "text",
 					id: "petsuitCollar_trigger",
 					label: "Trigger:",
 					description: "Sets the trigger word/sentence for the petsuit collar.",
 					setting: () => this.settings.petsuitCollarSetting.trigger ?? "",
 					setSetting: (val) => (this.settings.petsuitCollarSetting.trigger = val),
-					disabled: !this.settings.petsuitCollarSetting.speechEnabled || !this.settings.petsuitCollarSetting.enabled || this.settings.petsuitCollarSetting.locked,
+					disabled: !this.settings.petsuitCollarSetting.enabled || this.settings.petsuitCollarSetting.locked,
 				},
 				<Setting>{
 					type: "checkbox",
@@ -86,7 +78,7 @@ export class GuiArtifact extends GuiSubscreen {
 					description: "Allows the wearer of the collar to trigger the speech commands.",
 					setting: () => this.settings.petsuitCollarSetting.allowSelfTrigger ?? false,
 					setSetting: (val) => (this.settings.petsuitCollarSetting.allowSelfTrigger = val),
-					disabled: !this.settings.petsuitCollarSetting.speechEnabled || !this.settings.petsuitCollarSetting.enabled || this.settings.petsuitCollarSetting.locked,
+					disabled: !this.settings.petsuitCollarSetting.enabled || this.settings.petsuitCollarSetting.locked,
 				},
 				<Setting>{
 					type: "checkbox",
@@ -245,11 +237,11 @@ export class GuiArtifact extends GuiSubscreen {
 				// Update Collar Button
 				let buttonPos = this.structure.length;
 				if (MouseIn(this.getXPos(buttonPos) + 464, this.getYPos(buttonPos) - 32, 200, 64)) {
-					var collar = InventoryGet(Player, "ItemNeck");
-					if (!collar) {
-						this.message = "No Collar Equipped";
+					var collar = InventoryGet(Player, "ItemHood");
+					if (!collar || collar.Asset.Name != "CosplayEars") {
+						this.message = "No Mask Equipped";
 					} else {
-						this.message = "Collar updated";
+						this.message = "Mask updated";
 						this.settings.cosplayEars = <PetsuitCollarModel>{
 							name: collar.Craft?.Name ?? collar.Asset.Name,
 							creator: collar.Craft?.MemberNumber ?? 0,

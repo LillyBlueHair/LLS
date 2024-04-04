@@ -555,9 +555,6 @@ var LLS = (function (exports) {
 	        this.GlobalModule = {};
 	        this.MiscModule = { enabled: false };
 	        this.ArtifactModule = {
-	            ropeOfTighteningEnabled: false,
-	            publicRopeOfTighteningEnabled: false,
-	            ropeOfTightening: {},
 	            catSpeechEnabled: false,
 	            petsuitCollarSetting: {
 	                enabled: false,
@@ -574,7 +571,6 @@ var LLS = (function (exports) {
 	                petsuitCollar: { name: "", creator: 0 },
 	                ropeOfTighteningEnabled: false,
 	                publicRopeOfTighteningEnabled: false,
-	                ropeOfTightening: { name: "", creator: 0 },
 	            },
 	            cosplayEarEnabled: false,
 	        };
@@ -1718,21 +1714,13 @@ var LLS = (function (exports) {
 	                    disabled: !this.settings.petsuitCollarSetting.enabled || this.settings.petsuitCollarSetting.locked,
 	                },
 	                {
-	                    type: "checkbox",
-	                    label: "Enable Voice Commands:",
-	                    description: "Enables voice commands for the petsuit collar.",
-	                    setting: () => { var _a; return (_a = this.settings.petsuitCollarSetting.speechEnabled) !== null && _a !== void 0 ? _a : false; },
-	                    setSetting: (val) => (this.settings.petsuitCollarSetting.speechEnabled = val),
-	                    disabled: !this.settings.petsuitCollarSetting.enabled || this.settings.petsuitCollarSetting.locked,
-	                },
-	                {
 	                    type: "text",
 	                    id: "petsuitCollar_trigger",
 	                    label: "Trigger:",
 	                    description: "Sets the trigger word/sentence for the petsuit collar.",
 	                    setting: () => { var _a; return (_a = this.settings.petsuitCollarSetting.trigger) !== null && _a !== void 0 ? _a : ""; },
 	                    setSetting: (val) => (this.settings.petsuitCollarSetting.trigger = val),
-	                    disabled: !this.settings.petsuitCollarSetting.speechEnabled || !this.settings.petsuitCollarSetting.enabled || this.settings.petsuitCollarSetting.locked,
+	                    disabled: !this.settings.petsuitCollarSetting.enabled || this.settings.petsuitCollarSetting.locked,
 	                },
 	                {
 	                    type: "checkbox",
@@ -1740,7 +1728,7 @@ var LLS = (function (exports) {
 	                    description: "Allows the wearer of the collar to trigger the speech commands.",
 	                    setting: () => { var _a; return (_a = this.settings.petsuitCollarSetting.allowSelfTrigger) !== null && _a !== void 0 ? _a : false; },
 	                    setSetting: (val) => (this.settings.petsuitCollarSetting.allowSelfTrigger = val),
-	                    disabled: !this.settings.petsuitCollarSetting.speechEnabled || !this.settings.petsuitCollarSetting.enabled || this.settings.petsuitCollarSetting.locked,
+	                    disabled: !this.settings.petsuitCollarSetting.enabled || this.settings.petsuitCollarSetting.locked,
 	                },
 	                {
 	                    type: "checkbox",
@@ -1840,12 +1828,12 @@ var LLS = (function (exports) {
 	                // Update Collar Button
 	                let buttonPos = this.structure.length;
 	                if (MouseIn(this.getXPos(buttonPos) + 464, this.getYPos(buttonPos) - 32, 200, 64)) {
-	                    var collar = InventoryGet(Player, "ItemNeck");
-	                    if (!collar) {
-	                        this.message = "No Collar Equipped";
+	                    var collar = InventoryGet(Player, "ItemHood");
+	                    if (!collar || collar.Asset.Name != "CosplayEars") {
+	                        this.message = "No Mask Equipped";
 	                    }
 	                    else {
-	                        this.message = "Collar updated";
+	                        this.message = "Mask updated";
 	                        this.settings.cosplayEars = {
 	                            name: (_f = (_e = collar.Craft) === null || _e === void 0 ? void 0 : _e.Name) !== null && _f !== void 0 ? _f : collar.Asset.Name,
 	                            creator: (_h = (_g = collar.Craft) === null || _g === void 0 ? void 0 : _g.MemberNumber) !== null && _h !== void 0 ? _h : 0,
@@ -1892,7 +1880,6 @@ var LLS = (function (exports) {
 	        return {
 	            ropeOfTighteningEnabled: false,
 	            publicRopeOfTighteningEnabled: false,
-	            ropeOfTightening: {},
 	            catSpeechEnabled: false,
 	            petsuitCollarSetting: {
 	                enabled: false,
@@ -1919,15 +1906,15 @@ var LLS = (function (exports) {
 	        onChat(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
 	            var _a;
 	            let collarSettings = (_a = Player.LLS) === null || _a === void 0 ? void 0 : _a.ArtifactModule;
-	            if (!collarSettings || !collarSettings.petsuitCollarSetting.enabled || !collarSettings.petsuitCollarSetting.speechEnabled)
-	                return;
-	            if (isPhraseInString(msg.toLowerCase(), collarSettings.petsuitCollarSetting.trigger.toLowerCase(), true) && this.wearingPetsuitCollar(Player)) {
-	                if ((sender === null || sender === void 0 ? void 0 : sender.IsPlayer()) && !collarSettings.petsuitCollarSetting.allowSelfTrigger)
-	                    return;
-	                else if (sender === null || sender === void 0 ? void 0 : sender.IsPlayer())
-	                    this.petsuitCollarToggle(Player);
-	                else if (this.isAllowedPetsuitCollarMember(sender)) {
-	                    this.petsuitCollarToggle(Player);
+	            if (collarSettings && collarSettings.petsuitCollarSetting.enabled) {
+	                if (isPhraseInString(msg.toLowerCase(), collarSettings.petsuitCollarSetting.trigger.toLowerCase(), true) && this.wearingPetsuitCollar(Player)) {
+	                    if ((sender === null || sender === void 0 ? void 0 : sender.IsPlayer()) && !collarSettings.petsuitCollarSetting.allowSelfTrigger)
+	                        return;
+	                    else if (sender === null || sender === void 0 ? void 0 : sender.IsPlayer())
+	                        this.petsuitCollarToggle(Player);
+	                    else if (this.isAllowedPetsuitCollarMember(sender)) {
+	                        this.petsuitCollarToggle(Player);
+	                    }
 	                }
 	            }
 	            return;
@@ -1948,26 +1935,8 @@ var LLS = (function (exports) {
 	            
 	            return next(args);
 	        }, ModuleCategory.Artifacts);*/
-	        onWhisper(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
-	            var _a;
-	            let collarSettings = (_a = Player.LLS) === null || _a === void 0 ? void 0 : _a.ArtifactModule;
-	            if (!collarSettings || !collarSettings.petsuitCollarSetting.enabled)
-	                return;
-	            else if ((sender === null || sender === void 0 ? void 0 : sender.IsPlayer()) && petsuitActivated)
-	                return;
-	            else if (msg.toLowerCase().startsWith("!petsuitcollar") &&
-	                (this.isAllowedPetsuitCollarMember(sender) || (sender === null || sender === void 0 ? void 0 : sender.IsPlayer)) &&
-	                this.wearingPetsuitCollar(Player)) {
-	                this.petsuitCollarToggle(Player);
-	                return "skipBCX";
-	            }
-	            return;
-	        });
+	        onWhisper(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => { });
 	        onActivity(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
-	            if (msg == "ChatSelf-ItemArms-StruggleArms" && sender) {
-	                this.ropeOfTighteningAction(sender.IsPlayer() ? Player : sender);
-	            }
-	            return;
 	        });
 	        onAction(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
 	            if (msg == "ItemHoodHarnessCatMaskSetEars") {
@@ -1999,8 +1968,7 @@ var LLS = (function (exports) {
 	        else {
 	            var collarName = (_e = (_d = (_c = ears.Craft) === null || _c === void 0 ? void 0 : _c.Name) !== null && _d !== void 0 ? _d : ears === null || ears === void 0 ? void 0 : ears.Asset.Name) !== null && _e !== void 0 ? _e : "";
 	            var collarCreator = (_g = (_f = ears === null || ears === void 0 ? void 0 : ears.Craft) === null || _f === void 0 ? void 0 : _f.MemberNumber) !== null && _g !== void 0 ? _g : -1;
-	            return (collarName == earSetting.name &&
-	                collarCreator == earSetting.creator);
+	            return collarName == earSetting.name && collarCreator == earSetting.creator;
 	        }
 	    }
 	    activateCosplayTail(C) {
@@ -2059,29 +2027,7 @@ var LLS = (function (exports) {
 	        else {
 	            var collarName = (_d = (_c = (_b = collar === null || collar === void 0 ? void 0 : collar.Craft) === null || _b === void 0 ? void 0 : _b.Name) !== null && _c !== void 0 ? _c : collar === null || collar === void 0 ? void 0 : collar.Asset.Name) !== null && _d !== void 0 ? _d : "";
 	            var collarCreator = (_f = (_e = collar === null || collar === void 0 ? void 0 : collar.Craft) === null || _e === void 0 ? void 0 : _e.MemberNumber) !== null && _f !== void 0 ? _f : -1;
-	            return (collarName == collarSettings.petsuitCollar.name &&
-	                collarCreator == collarSettings.petsuitCollar.creator);
-	        }
-	    }
-	    ropeOfTighteningAction(C) {
-	        var _a, _b, _c, _d, _e, _f;
-	        var rope = InventoryGet(C, "ItemArms");
-	        let ropeSettings = (_a = C.LLS) === null || _a === void 0 ? void 0 : _a.ArtifactModule.ropeOfTightening;
-	        return;
-	        if (!ropeSettings || !ropeSettings.name)
-	            return;
-	        // If configured rope is not crafted, let any inherited rope work.
-	        if (!ropeSettings.creator) {
-	            sendAction("The rope around %NAME%'s arms tightens by itself, holding %POSSESSIVE% arms in place.");
-	            return;
-	        }
-	        else {
-	            var ropeName = (_d = (_c = (_b = rope === null || rope === void 0 ? void 0 : rope.Craft) === null || _b === void 0 ? void 0 : _b.Name) !== null && _c !== void 0 ? _c : rope === null || rope === void 0 ? void 0 : rope.Asset.Name) !== null && _d !== void 0 ? _d : "";
-	            var ropeCreator = (_f = (_e = rope === null || rope === void 0 ? void 0 : rope.Craft) === null || _e === void 0 ? void 0 : _e.MemberNumber) !== null && _f !== void 0 ? _f : -1;
-	            if (ropeName == ropeSettings.name && ropeCreator == ropeSettings.creator) {
-	                sendAction("The rope around %NAME%'s arms tightens by itself, holding %POSSESSIVE% arms in place.");
-	                return;
-	            }
+	            return collarName == collarSettings.petsuitCollar.name && collarCreator == collarSettings.petsuitCollar.creator;
 	        }
 	    }
 	    petsuitCollarToggle(C) {
@@ -2143,7 +2089,7 @@ var LLS = (function (exports) {
 	    petsuitCollarDeactivate(C) {
 	        InventoryRemove(C, "ItemArms");
 	        let items = JSON.parse(LZString.decompressFromBase64(clothesSafe));
-	        items.forEach(item => {
+	        items.forEach((item) => {
 	            var _a;
 	            let asset = AssetGet(C.AssetFamily, item.Group, item.Name);
 	            if (!!asset) {
@@ -2393,21 +2339,13 @@ var LLS = (function (exports) {
 	                    disabled: !this.settings.petsuitCollarSetting.enabled,
 	                },
 	                {
-	                    type: "checkbox",
-	                    label: "Enable Voice Commands:",
-	                    description: "Enables voice commands for the petsuit collar.",
-	                    setting: () => { var _a; return (_a = this.settings.petsuitCollarSetting.speechEnabled) !== null && _a !== void 0 ? _a : false; },
-	                    setSetting: (val) => (this.settings.petsuitCollarSetting.speechEnabled = val),
-	                    disabled: !this.settings.petsuitCollarSetting.enabled,
-	                },
-	                {
 	                    type: "text",
 	                    id: "petsuitCollar_trigger",
 	                    label: "Trigger:",
 	                    description: "Sets the trigger word/sentence for the petsuit collar.",
 	                    setting: () => { var _a; return (_a = this.settings.petsuitCollarSetting.trigger) !== null && _a !== void 0 ? _a : ""; },
 	                    setSetting: (val) => (this.settings.petsuitCollarSetting.trigger = val),
-	                    disabled: !this.settings.petsuitCollarSetting.speechEnabled || !this.settings.petsuitCollarSetting.enabled,
+	                    disabled: !this.settings.petsuitCollarSetting.enabled,
 	                },
 	                {
 	                    type: "checkbox",
@@ -2415,7 +2353,7 @@ var LLS = (function (exports) {
 	                    description: "Allows the wearer of the collar to trigger the speech commands.",
 	                    setting: () => { var _a; return (_a = this.settings.petsuitCollarSetting.allowSelfTrigger) !== null && _a !== void 0 ? _a : false; },
 	                    setSetting: (val) => (this.settings.petsuitCollarSetting.allowSelfTrigger = val),
-	                    disabled: !this.settings.petsuitCollarSetting.speechEnabled || !this.settings.petsuitCollarSetting.enabled,
+	                    disabled: !this.settings.petsuitCollarSetting.enabled,
 	                },
 	                {
 	                    type: "checkbox",

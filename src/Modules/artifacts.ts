@@ -1,8 +1,22 @@
 import { BaseModule } from "base";
 import { GuiArtifact } from "Settings/artifacts";
-import { ArtifactSettingsModel, CosplayEarSettingsModel, PetsuitCollarModel, RopeOfTighteningModel } from "Settings/Models/artifacts";
+import { ArtifactSettingsModel, CosplayEarSettingsModel, PetsuitCollarModel } from "Settings/Models/artifacts";
 import { ModuleCategory, Subscreen } from "Settings/settingDefinitions";
-import { itemsToItemBundles, getDelimitedList, isPhraseInString, lockItem, onActivity, onChat,  onSentMessage, onWhisper, removeAllHooksByModule, sendAction, hookFunction, callOriginal, onAction } from "utils";
+import {
+    itemsToItemBundles,
+    getDelimitedList,
+    isPhraseInString,
+    lockItem,
+    onActivity,
+    onChat,
+    onSentMessage,
+    onWhisper,
+    removeAllHooksByModule,
+    sendAction,
+    hookFunction,
+    callOriginal,
+    onAction,
+} from "utils";
 
 let petsuitActivated = false;
 let clothesSafe: string = "";
@@ -33,7 +47,6 @@ export class ArtifactModule extends BaseModule {
         return <ArtifactSettingsModel>{
             ropeOfTighteningEnabled: false,
             publicRopeOfTighteningEnabled: false,
-            ropeOfTightening: <RopeOfTighteningModel>{},
             catSpeechEnabled: false,
             petsuitCollarSetting: {
                 enabled: false,
@@ -61,12 +74,13 @@ export class ArtifactModule extends BaseModule {
     Load(): void {
         onChat(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
             let collarSettings = Player.LLS?.ArtifactModule;
-            if (!collarSettings || !collarSettings.petsuitCollarSetting.enabled || !collarSettings.petsuitCollarSetting.speechEnabled) return;
-            if (isPhraseInString(msg.toLowerCase(), collarSettings.petsuitCollarSetting.trigger.toLowerCase(), true) && this.wearingPetsuitCollar(Player)) {
-                if (sender?.IsPlayer() && !collarSettings.petsuitCollarSetting.allowSelfTrigger) return;
-                else if (sender?.IsPlayer()) this.petsuitCollarToggle(Player);
-                else if (this.isAllowedPetsuitCollarMember(sender)) {
-                    this.petsuitCollarToggle(Player);
+            if (collarSettings && collarSettings.petsuitCollarSetting.enabled) {
+                if (isPhraseInString(msg.toLowerCase(), collarSettings.petsuitCollarSetting.trigger.toLowerCase(), true) && this.wearingPetsuitCollar(Player)) {
+                    if (sender?.IsPlayer() && !collarSettings.petsuitCollarSetting.allowSelfTrigger) return;
+                    else if (sender?.IsPlayer()) this.petsuitCollarToggle(Player);
+                    else if (this.isAllowedPetsuitCollarMember(sender)) {
+                        this.petsuitCollarToggle(Player);
+                    }
                 }
             }
             return;
@@ -89,39 +103,22 @@ export class ArtifactModule extends BaseModule {
             return next(args);
         }, ModuleCategory.Artifacts);*/
 
-        onWhisper(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
-            let collarSettings = Player.LLS?.ArtifactModule;
-            if (!collarSettings || !collarSettings.petsuitCollarSetting.enabled) return;
-            else if (sender?.IsPlayer() && petsuitActivated) return;
-            else if (
-                msg.toLowerCase().startsWith("!petsuitcollar") &&
-                (this.isAllowedPetsuitCollarMember(sender) || sender?.IsPlayer) &&
-                this.wearingPetsuitCollar(Player)
-            ) {
-                this.petsuitCollarToggle(Player);
-                return "skipBCX";
-            }
-            return;
-        });
+        onWhisper(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {});
 
         onActivity(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
-            if (msg == "ChatSelf-ItemArms-StruggleArms" && sender) {
-                this.ropeOfTighteningAction(sender.IsPlayer() ? Player : (sender as OtherCharacter));
-            }
-            return;
         });
 
         onAction(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
-            if(msg == "ItemHoodHarnessCatMaskSetEars") {
+            if (msg == "ItemHoodHarnessCatMaskSetEars") {
                 this.activateCosplayTail(Player);
-            }else if(msg == "ItemHoodHarnessCatMaskSetNoEars") {
+            } else if (msg == "ItemHoodHarnessCatMaskSetNoEars") {
                 this.deactivateCosplayTail(Player);
             }
             return;
         });
 
-        onSentMessage(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {        
-            if(data.Type === "Chat"){
+        onSentMessage(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
+            if (data.Type === "Chat") {
                 sender = sender ? sender : Player;
                 this.catSpeech(data);
             }
@@ -133,39 +130,36 @@ export class ArtifactModule extends BaseModule {
         let ears = InventoryGet(C, "ItemHood");
         let earSetting = C.LLS?.ArtifactModule.cosplayEars;
         let enabled = C.LLS?.ArtifactModule.cosplayEarEnabled;
-        if(!ears || !enabled || !earSetting) return false;
+        if (!ears || !enabled || !earSetting) return false;
         if (!earSetting.creator) {
             return ears.Asset.Name != "HarnessCatMask";
         } else {
             var collarName = ears.Craft?.Name ?? ears?.Asset.Name ?? "";
             var collarCreator = ears?.Craft?.MemberNumber ?? -1;
-            return (
-                collarName == earSetting.name &&
-                collarCreator == earSetting.creator
-            );
+            return collarName == earSetting.name && collarCreator == earSetting.creator;
         }
     }
 
-    activateCosplayTail(C: OtherCharacter | PlayerCharacter){
-        if(!this.wearingCosplayEars(C)) return;
+    activateCosplayTail(C: OtherCharacter | PlayerCharacter) {
+        if (!this.wearingCosplayEars(C)) return;
         InventoryWear(C, "KittenTailStrap1", "TailStraps", "#060606");
         ChatRoomCharacterUpdate(C);
     }
 
-    deactivateCosplayTail(C: OtherCharacter | PlayerCharacter){
-        if(!this.wearingCosplayEars(C)) return;
+    deactivateCosplayTail(C: OtherCharacter | PlayerCharacter) {
+        if (!this.wearingCosplayEars(C)) return;
         InventoryRemove(C, "TailStraps");
         ChatRoomCharacterUpdate(C);
     }
 
     catSpeech(data: any): void {
         let catSpeech = Player.LLS?.ArtifactModule?.catSpeechEnabled;
-        if(!catSpeech) return;
-        if(!this.wearingCatSpeechMask(Player)) return;
-        
+        if (!catSpeech) return;
+        if (!this.wearingCatSpeechMask(Player)) return;
+
         data.Content = data.Content.replace(/\b\S+\b/g, (str: string | any[]) => {
-            if(str.length <= 3) return "mew";
-            else{
+            if (str.length <= 3) return "mew";
+            else {
                 let length = str.length - 3;
                 return "m" + "e".repeat(length) + "ow";
             }
@@ -177,9 +171,9 @@ export class ArtifactModule extends BaseModule {
         var gag1 = InventoryGet(C, "ItemMouth");
         var gag2 = InventoryGet(C, "ItemMouth2");
         var gag3 = InventoryGet(C, "ItemMouth3");
-        if(gag1 && (gag1.Asset.Name == "KittyHarnessPanelGag" || gag1.Asset.Name == "KittyGag" || gag1.Asset.Name == "KittyMuzzleGag")) return true;
-        else if(gag2 && (gag2.Asset.Name == "KittyHarnessPanelGag" || gag2.Asset.Name == "KittyGag" || gag2.Asset.Name == "KittyMuzzleGag")) return true;
-        else if(gag3 && (gag3.Asset.Name == "KittyHarnessPanelGag" || gag3.Asset.Name == "KittyGag" || gag3.Asset.Name == "KittyMuzzleGag")) return true;
+        if (gag1 && (gag1.Asset.Name == "KittyHarnessPanelGag" || gag1.Asset.Name == "KittyGag" || gag1.Asset.Name == "KittyMuzzleGag")) return true;
+        else if (gag2 && (gag2.Asset.Name == "KittyHarnessPanelGag" || gag2.Asset.Name == "KittyGag" || gag2.Asset.Name == "KittyMuzzleGag")) return true;
+        else if (gag3 && (gag3.Asset.Name == "KittyHarnessPanelGag" || gag3.Asset.Name == "KittyGag" || gag3.Asset.Name == "KittyMuzzleGag")) return true;
         return false;
     }
 
@@ -196,31 +190,7 @@ export class ArtifactModule extends BaseModule {
         } else {
             var collarName = collar?.Craft?.Name ?? collar?.Asset.Name ?? "";
             var collarCreator = collar?.Craft?.MemberNumber ?? -1;
-            return (
-                collarName == collarSettings.petsuitCollar.name &&
-                collarCreator == collarSettings.petsuitCollar.creator
-            );
-        }
-    }
-
-    ropeOfTighteningAction(C: OtherCharacter | PlayerCharacter): void {
-        var rope = InventoryGet(C, "ItemArms");
-        let ropeSettings = C.LLS?.ArtifactModule.ropeOfTightening;
-        return;
-
-        if (!ropeSettings || !ropeSettings.name) return;
-
-        // If configured rope is not crafted, let any inherited rope work.
-        if (!ropeSettings.creator) {
-            sendAction("The rope around %NAME%'s arms tightens by itself, holding %POSSESSIVE% arms in place.");
-            return;
-        } else {
-            var ropeName = rope?.Craft?.Name ?? rope?.Asset.Name ?? "";
-            var ropeCreator = rope?.Craft?.MemberNumber ?? -1;
-            if (ropeName == ropeSettings.name && ropeCreator == ropeSettings.creator) {
-                sendAction("The rope around %NAME%'s arms tightens by itself, holding %POSSESSIVE% arms in place.");
-                return;
-            }
+            return collarName == collarSettings.petsuitCollar.name && collarCreator == collarSettings.petsuitCollar.creator;
         }
     }
 
@@ -261,22 +231,22 @@ export class ArtifactModule extends BaseModule {
         var suit = InventoryGet(C, "ItemArms");
         if (suit && suit.Property && suit.Property.TypeRecord) suit.Property.TypeRecord.typed = 1;
         //if(suit && suit.Property) suit.Property.Hide = ["Bra", "Panties", "ItemNipples","ItemNipplesPiercings", "ItemBreasts", "Socks", "Suit", "SuitLower", "SocksLeft", "SocksRight"];
-		
+
         clothesSafe = LZString.compressToBase64(JSON.stringify(itemsToItemBundles(C.Appearance)));
 
-		let accessory = InventoryGet(C, "ClothAccessory");
-		let socksLeft = InventoryGet(C, "SocksLeft");
-		let socksRight = InventoryGet(C, "SocksRight");
-		
-		if (accessory && disallowedItemsPetsuit.indexOf(accessory.Asset.Name) != -1) {
-			InventoryRemove(C, "ClothAccessory");
-		}
-		if (socksLeft) {
-			InventoryRemove(C, "SocksLeft");
-		}
-		if (socksRight) {
-			InventoryRemove(C, "SocksRight");
-		}
+        let accessory = InventoryGet(C, "ClothAccessory");
+        let socksLeft = InventoryGet(C, "SocksLeft");
+        let socksRight = InventoryGet(C, "SocksRight");
+
+        if (accessory && disallowedItemsPetsuit.indexOf(accessory.Asset.Name) != -1) {
+            InventoryRemove(C, "ClothAccessory");
+        }
+        if (socksLeft) {
+            InventoryRemove(C, "SocksLeft");
+        }
+        if (socksRight) {
+            InventoryRemove(C, "SocksRight");
+        }
 
         lockItem(C, InventoryGet(C, "ItemArms"), "PasswordPadlock");
         ChatRoomCharacterUpdate(C);
@@ -289,16 +259,15 @@ export class ArtifactModule extends BaseModule {
 
     petsuitCollarDeactivate(C: OtherCharacter | PlayerCharacter): void {
         InventoryRemove(C, "ItemArms");
-		let items: ItemBundle[] = JSON.parse(LZString.decompressFromBase64(clothesSafe));
-        items.forEach(item => {
+        let items: ItemBundle[] = JSON.parse(LZString.decompressFromBase64(clothesSafe));
+        items.forEach((item) => {
             let asset = AssetGet(C.AssetFamily, item.Group, item.Name);
             if (!!asset) {
                 let isRoomDisallowed = !InventoryChatRoomAllow(asset?.Category ?? []);
                 if (isRoomDisallowed) {
                     let newItem = InventoryWear(C, item.Name, item.Group, item.Color, item.Difficulty, -1, item.Craft, false);
                     if (!!newItem) {
-                        if (!!item.Property)
-                            newItem.Property = item.Property;
+                        if (!!item.Property) newItem.Property = item.Property;
                     }
                 }
             }
