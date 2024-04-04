@@ -1,6 +1,6 @@
 import { BaseModule } from "base";
 import { GuiArtifact } from "Settings/artifacts";
-import { ArtifactSettingsModel, CosplayEarSettingsModel, PetsuitCollarModel } from "Settings/Models/artifacts";
+import { ArtifactSettingsModel, CosplayEarModel, GagCollarModel, PetsuitCollarModel } from "Settings/Models/artifacts";
 import { ModuleCategory, Subscreen } from "Settings/settingDefinitions";
 import {
     itemsToItemBundles,
@@ -63,7 +63,10 @@ export class ArtifactModule extends BaseModule {
                 petsuitCollar: <PetsuitCollarModel>{ name: "", creator: 0 },
             },
             cosplayEarEnabled: false,
-            cosplayEars: <CosplayEarSettingsModel>{ name: "", creator: 0 },
+            cosplayEars: <CosplayEarModel>{ name: "", creator: 0 },
+            cosplayTailColor: "#060606",
+            gagCollarEnabled: false,
+            gagCollar: <GagCollarModel>{ name: "", creator: 0 },
         };
     }
 
@@ -73,15 +76,16 @@ export class ArtifactModule extends BaseModule {
 
     Load(): void {
         onChat(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
-            let collarSettings = Player.LLS?.ArtifactModule;
-            if (collarSettings && collarSettings.petsuitCollarSetting.enabled) {
-                if (isPhraseInString(msg.toLowerCase(), collarSettings.petsuitCollarSetting.trigger.toLowerCase(), true) && this.wearingPetsuitCollar(Player)) {
-                    if (sender?.IsPlayer() && !collarSettings.petsuitCollarSetting.allowSelfTrigger) return;
+            let petsuitCollarSettings = Player.LLS?.ArtifactModule;
+            if (petsuitCollarSettings && petsuitCollarSettings.petsuitCollarSetting.enabled) {
+                if (isPhraseInString(msg.toLowerCase(), petsuitCollarSettings.petsuitCollarSetting.trigger.toLowerCase(), true) && this.wearingPetsuitCollar(Player)) {
+                    if (sender?.IsPlayer() && !petsuitCollarSettings.petsuitCollarSetting.allowSelfTrigger) return;
                     else if (sender?.IsPlayer()) this.petsuitCollarToggle(Player);
                     else if (this.isAllowedPetsuitCollarMember(sender)) {
                         this.petsuitCollarToggle(Player);
                     }
                 }
+            } else if(this.settings.gagCollarEnabled && this.wearingGagCollar(Player)) {
             }
             return;
         });
@@ -103,7 +107,20 @@ export class ArtifactModule extends BaseModule {
             return next(args);
         }, ModuleCategory.Artifacts);*/
 
-        onWhisper(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {});
+        onWhisper(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
+            let petsuitCollarSettings = Player.LLS?.ArtifactModule;
+            if (petsuitCollarSettings && petsuitCollarSettings.petsuitCollarSetting.enabled) {
+                if (isPhraseInString(msg.toLowerCase(), petsuitCollarSettings.petsuitCollarSetting.trigger.toLowerCase(), true) && this.wearingPetsuitCollar(Player)) {
+                    if (sender?.IsPlayer() && !petsuitCollarSettings.petsuitCollarSetting.allowSelfTrigger) return;
+                    else if (sender?.IsPlayer()) this.petsuitCollarToggle(Player);
+                    else if (this.isAllowedPetsuitCollarMember(sender)) {
+                        this.petsuitCollarToggle(Player);
+                    }
+                }
+            } else if(this.settings.gagCollarEnabled && this.wearingGagCollar(Player)) {
+            }
+            return;
+        });
 
         onActivity(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
         });
@@ -126,6 +143,38 @@ export class ArtifactModule extends BaseModule {
         });
     }
 
+    // Gag collar
+
+    wearingGagCollar(C: OtherCharacter | PlayerCharacter): boolean {
+        var collar = InventoryGet(C, "ItemNeck");
+        if (!collar) return false;
+        var collarName = collar?.Asset.Name ?? "";
+        var collarCreator = collar?.Craft?.MemberNumber ?? -1;
+        return collarName == this.settings.gagCollar.name && collarCreator == this.settings.gagCollar.creator;
+    }
+
+    toggleGagCollar(C: OtherCharacter | PlayerCharacter): void {
+        if (this.wearingGagCollar(C)) {
+            this.deactivateGagCollar(C);
+        } else {
+            this.activateGagCollar(C);
+        }
+    }
+
+    activateGagCollar(C: OtherCharacter | PlayerCharacter): void {
+        InventoryWear(C, "BallGag", "ItemMouth2", "#4FD5F7");
+        let gag = InventoryGet(C, "ItemMouth2");
+        if (gag && gag.Property && gag.Property.TypeRecord) gag.Property.TypeRecord.typed = 2;
+        ChatRoomCharacterUpdate(C);
+    }
+
+    deactivateGagCollar(C: OtherCharacter | PlayerCharacter): void {
+        InventoryRemove(C, "ItemMouth2");
+        ChatRoomCharacterUpdate(C);
+    }
+
+    //Cosplay Ears + Tail
+
     wearingCosplayEars(C: OtherCharacter | PlayerCharacter): boolean {
         let ears = InventoryGet(C, "ItemHood");
         let earSetting = C.LLS?.ArtifactModule.cosplayEars;
@@ -142,7 +191,9 @@ export class ArtifactModule extends BaseModule {
 
     activateCosplayTail(C: OtherCharacter | PlayerCharacter) {
         if (!this.wearingCosplayEars(C)) return;
-        InventoryWear(C, "KittenTailStrap1", "TailStraps", "#060606");
+        let color = this.settings.cosplayTailColor;
+        if (!color.startsWith("#")) color = "#" + color;
+        InventoryWear(C, "KittenTailStrap1", "TailStraps", color);
         ChatRoomCharacterUpdate(C);
     }
 
@@ -151,6 +202,8 @@ export class ArtifactModule extends BaseModule {
         InventoryRemove(C, "TailStraps");
         ChatRoomCharacterUpdate(C);
     }
+
+    // Cat Speech Mask
 
     catSpeech(data: any): void {
         let catSpeech = Player.LLS?.ArtifactModule?.catSpeechEnabled;
@@ -176,6 +229,8 @@ export class ArtifactModule extends BaseModule {
         else if (gag3 && (gag3.Asset.Name == "KittyHarnessPanelGag" || gag3.Asset.Name == "KittyGag" || gag3.Asset.Name == "KittyMuzzleGag")) return true;
         return false;
     }
+
+    // Petsuit Collar
 
     wearingPetsuitCollar(C: OtherCharacter | PlayerCharacter): boolean {
         var collar = InventoryGet(C, "ItemNeck");

@@ -690,7 +690,8 @@ var LLS = (function (exports) {
 	        }
 	        this.HideElements();
 	        this.structure.forEach((item, ix, arr) => {
-	            if (this.PreferenceColorPick != "" && ((this.getXPos(ix) < 1000 && this.PreferenceColorPickLeft) || (this.getXPos(ix) > 1000 && !this.PreferenceColorPickLeft))) {
+	            if (this.PreferenceColorPick != "" &&
+	                ((this.getXPos(ix) < 1000 && this.PreferenceColorPickLeft) || (this.getXPos(ix) > 1000 && !this.PreferenceColorPickLeft))) {
 	                this.ElementHide(item.id);
 	                return;
 	            }
@@ -709,6 +710,9 @@ var LLS = (function (exports) {
 	                    //Position is moved more to the left in DrawColorPicker
 	                    this.ElementPosition(item.id, "", "", ix, item.disabled);
 	                    this.DrawColorPicker(item.id, item.label, item.description, item.setting(), ix, item.disabled);
+	                    break;
+	                case "craftselect":
+	                    this.DrawCraftSelect(item.id, item.label, item.description, item.setting(), ix, item.disabled);
 	                    break;
 	            }
 	        });
@@ -737,6 +741,20 @@ var LLS = (function (exports) {
 	                        else {
 	                            this.PreferenceColorPickLeft = true;
 	                        }
+	                    }
+	                    break;
+	                case "craftselect":
+	                    if (MouseIn(this.getXPos(ix) + 464, this.getYPos(ix) - 32, 200, 64) && !item.disabled) {
+	                        var collar = InventoryGet(Player, item.slot);
+	                        if (!collar || !collar.Craft)
+	                            break;
+	                        var name = collar.Craft.Name;
+	                        var creator = collar.Craft.MemberNumber;
+	                        item.setSetting({ name: name, creator: creator });
+	                        console.log(item.setting());
+	                    }
+	                    else if (MouseIn(this.getXPos(ix) + 464, this.getYPos(ix) + 40, 200, 64) && !item.disabled) {
+	                        item.setSetting({ name: "", creator: 0 });
 	                    }
 	                    break;
 	            }
@@ -807,12 +825,10 @@ var LLS = (function (exports) {
 	        }
 	        if (this.PreferenceColorPick == id) {
 	            if (this.getXPos(order) < 1000) {
-	                ColorPickerDraw(1250, 185, 675, 800, 
-	                /** @type {HTMLInputElement} */ document.getElementById(id));
+	                ColorPickerDraw(1250, 185, 675, 800, /** @type {HTMLInputElement} */ document.getElementById(id));
 	            }
 	            else {
-	                ColorPickerDraw(250, 185, 675, 800, 
-	                /** @type {HTMLInputElement} */ document.getElementById(id));
+	                ColorPickerDraw(250, 185, 675, 800, /** @type {HTMLInputElement} */ document.getElementById(id));
 	            }
 	        }
 	        else if (this.PreferenceColorPick == "")
@@ -821,6 +837,25 @@ var LLS = (function (exports) {
 	        DrawButton(this.getXPos(order) + 600, this.getYPos(order) - 32, 64, 64, "", disabled ? "#ebebe4" : "White", "Icons/Color.png", "", disabled);
 	        if (isHovering)
 	            this.Tooltip(description);
+	    }
+	    DrawCraftSelect(id, name, description, setting, order, disabled = false) {
+	        let prev = MainCanvas.textAlign;
+	        MainCanvas.textAlign = "left";
+	        DrawText("Update " + name + ":", this.getXPos(order), this.getYPos(order), disabled ? "Gray" : "Black", "Gray");
+	        MainCanvas.textAlign = "center";
+	        DrawButton(this.getXPos(order) + 464, this.getYPos(order) - 32, 200, 64, "Update", disabled ? "#CCCCCC" : "White", undefined, "", disabled);
+	        if (MouseIn(this.getXPos(order) + 464, this.getYPos(order) - 32, 600, 64))
+	            this.Tooltip("Sets the " + name + " to the one currently worn");
+	        DrawButton(this.getXPos(order) + 464, this.getYPos(order) + 40, 200, 64, "Clear", disabled ? "#CCCCCC" : "White", undefined, "", disabled);
+	        if (MouseIn(this.getXPos(order) + 464, this.getYPos(order) + 40, 600, 64))
+	            this.Tooltip("Set " + name + " to default");
+	        MainCanvas.textAlign = "left";
+	        if (!!setting) {
+	            DrawText("Current Name: " + setting.name, this.getXPos(order), this.getYPos(order) + 60, "Gray", "Gray");
+	            if (!!setting.creator && setting.creator > 0)
+	                DrawText("Current Crafter: " + setting.creator, this.getXPos(order), this.getYPos(order) + 110, "Gray", "Gray");
+	        }
+	        MainCanvas.textAlign = prev;
 	    }
 	    ElementHide(elementId) {
 	        ElementPosition(elementId, -999, -999, 1, 1);
@@ -1746,6 +1781,19 @@ var LLS = (function (exports) {
 	                    setSetting: (val) => (this.settings.petsuitCollarSetting.lockable = val),
 	                    disabled: !this.settings.petsuitCollarSetting.enabled || this.settings.petsuitCollarSetting.locked,
 	                },
+	                {
+	                    type: "craftselect",
+	                    id: "petsuitCollar",
+	                    label: "Petsuit Collar",
+	                    slot: "ItemNeck",
+	                    description: "The current collar equipped.",
+	                    setting: () => this.settings.petsuitCollarSetting.petsuitCollar,
+	                    setSetting: (val) => (this.settings.petsuitCollarSetting.petsuitCollar = { name: val.name, creator: val.creator }),
+	                    disabled: !this.settings.petsuitCollarSetting.enabled,
+	                },
+	                {
+	                    type: "null"
+	                },
 	            ],
 	            [
 	                {
@@ -1762,86 +1810,56 @@ var LLS = (function (exports) {
 	                    setting: () => { var _a; return (_a = this.settings.cosplayEarEnabled) !== null && _a !== void 0 ? _a : false; },
 	                    setSetting: (val) => (this.settings.cosplayEarEnabled = val),
 	                },
-	            ]
+	                {
+	                    type: "colorpicker",
+	                    id: "cosplayTailColor",
+	                    label: "Cosplay Tail Color:",
+	                    description: "Sets the color of the tail on the cosplay outfit.",
+	                    setting: () => { var _a; return (_a = this.settings.cosplayTailColor) !== null && _a !== void 0 ? _a : "#060606"; },
+	                    setSetting: (val) => (this.settings.cosplayTailColor = val),
+	                    disabled: !this.settings.cosplayEarEnabled,
+	                },
+	                {
+	                    type: "craftselect",
+	                    id: "cosplayEars",
+	                    label: "Cat Cosplay Mask",
+	                    slot: "ItemHood",
+	                    description: "The current mask equipped.",
+	                    setting: () => this.settings.cosplayEars,
+	                    setSetting: (val) => (this.settings.cosplayEars = { name: val.name, creator: val.creator }),
+	                    disabled: !this.settings.cosplayEarEnabled,
+	                },
+	                {
+	                    type: "null"
+	                },
+	                {
+	                    type: "checkbox",
+	                    label: "Gag Collar:",
+	                    description: "Enables gag collar features.",
+	                    setting: () => { var _a; return (_a = this.settings.gagCollarEnabled) !== null && _a !== void 0 ? _a : false; },
+	                    setSetting: (val) => (this.settings.gagCollarEnabled = val),
+	                },
+	                {
+	                    type: "craftselect",
+	                    id: "gagCollar",
+	                    label: "Gag Collar",
+	                    slot: "ItemNeck",
+	                    description: "The current collar equipped.",
+	                    setting: () => this.settings.gagCollar,
+	                    setSetting: (val) => (this.settings.gagCollar = { name: val.name, creator: val.creator }),
+	                    disabled: !this.settings.gagCollarEnabled,
+	                },
+	                {
+	                    type: "null"
+	                },
+	            ],
 	        ];
 	    }
 	    Run() {
 	        super.Run();
-	        let buttonPos = this.structure.length;
-	        if (super.PreferenceColorPick != "" && ((super.PreferenceColorPickLeft && this.getXPos(buttonPos) < 1000) || (!super.PreferenceColorPickLeft && this.getXPos(buttonPos) > 1000)))
-	            return;
-	        else if (PreferencePageCurrent == 1) {
-	            let prev = MainCanvas.textAlign;
-	            MainCanvas.textAlign = "left";
-	            let updateDisabled = !this.settings.petsuitCollarSetting.enabled || this.settings.petsuitCollarSetting.locked;
-	            DrawText("Update Collar:", this.getXPos(buttonPos), this.getYPos(buttonPos), updateDisabled ? "Gray" : "Black", "Gray");
-	            MainCanvas.textAlign = "center";
-	            DrawButton(this.getXPos(buttonPos) + 464, this.getYPos(buttonPos) - 32, 200, 64, "Update", updateDisabled ? "#CCCCCC" : "White", undefined, updateDisabled ? "" : "Update Collar to Current", updateDisabled);
-	            MainCanvas.textAlign = "left";
-	            if (!!this.settings.petsuitCollarSetting.petsuitCollar) {
-	                DrawText("Current Name: " + this.settings.petsuitCollarSetting.petsuitCollar.name, this.getXPos(buttonPos), this.getYPos(buttonPos) + 60, "Gray", "Gray");
-	                if (!!this.settings.petsuitCollarSetting.petsuitCollar.creator && this.settings.petsuitCollarSetting.petsuitCollar.creator > 0)
-	                    DrawText("Current Crafter: " + this.settings.petsuitCollarSetting.petsuitCollar.creator, this.getXPos(buttonPos), this.getYPos(buttonPos) + 110, "Gray", "Gray");
-	            }
-	            MainCanvas.textAlign = prev;
-	        }
-	        else if (PreferencePageCurrent == 2) {
-	            let prev = MainCanvas.textAlign;
-	            MainCanvas.textAlign = "left";
-	            let updateDisabled = !this.settings.cosplayEarEnabled;
-	            DrawText("Update Cosplay Mask:", this.getXPos(buttonPos), this.getYPos(buttonPos), updateDisabled ? "Gray" : "Black", "Gray");
-	            MainCanvas.textAlign = "center";
-	            DrawButton(this.getXPos(buttonPos) + 464, this.getYPos(buttonPos) - 32, 200, 64, "Update", updateDisabled ? "#CCCCCC" : "White", undefined, updateDisabled ? "" : "Update Collar to Current", updateDisabled);
-	            MainCanvas.textAlign = "left";
-	            if (!!this.settings.cosplayEars) {
-	                DrawText("Current Name: " + this.settings.cosplayEars.name, this.getXPos(buttonPos), this.getYPos(buttonPos) + 60, "Gray", "Gray");
-	                if (!!this.settings.cosplayEars.creator && this.settings.cosplayEars.creator > 0)
-	                    DrawText("Current Crafter: " + this.settings.cosplayEars.creator, this.getXPos(buttonPos), this.getYPos(buttonPos) + 110, "Gray", "Gray");
-	            }
-	            MainCanvas.textAlign = prev;
-	        }
 	    }
 	    Click() {
-	        var _a, _b, _c, _d, _e, _f, _g, _h;
 	        super.Click();
-	        if (PreferencePageCurrent == 1) {
-	            if (this.settings.petsuitCollarSetting.enabled && !this.settings.petsuitCollarSetting.locked) {
-	                // Update Collar Button
-	                let buttonPos = this.structure.length;
-	                if (MouseIn(this.getXPos(buttonPos) + 464, this.getYPos(buttonPos) - 32, 200, 64)) {
-	                    var collar = InventoryGet(Player, "ItemNeck");
-	                    if (!collar) {
-	                        this.message = "No Collar Equipped";
-	                    }
-	                    else {
-	                        this.message = "Collar updated";
-	                        this.settings.petsuitCollarSetting.petsuitCollar = {
-	                            name: (_b = (_a = collar.Craft) === null || _a === void 0 ? void 0 : _a.Name) !== null && _b !== void 0 ? _b : collar.Asset.Name,
-	                            creator: (_d = (_c = collar.Craft) === null || _c === void 0 ? void 0 : _c.MemberNumber) !== null && _d !== void 0 ? _d : 0,
-	                        };
-	                    }
-	                }
-	            }
-	        }
-	        else if (PreferencePageCurrent == 2) {
-	            if (this.settings.cosplayEarEnabled) {
-	                // Update Collar Button
-	                let buttonPos = this.structure.length;
-	                if (MouseIn(this.getXPos(buttonPos) + 464, this.getYPos(buttonPos) - 32, 200, 64)) {
-	                    var collar = InventoryGet(Player, "ItemHood");
-	                    if (!collar || collar.Asset.Name != "CosplayEars") {
-	                        this.message = "No Mask Equipped";
-	                    }
-	                    else {
-	                        this.message = "Mask updated";
-	                        this.settings.cosplayEars = {
-	                            name: (_f = (_e = collar.Craft) === null || _e === void 0 ? void 0 : _e.Name) !== null && _f !== void 0 ? _f : collar.Asset.Name,
-	                            creator: (_h = (_g = collar.Craft) === null || _g === void 0 ? void 0 : _g.MemberNumber) !== null && _h !== void 0 ? _h : 0,
-	                        };
-	                    }
-	                }
-	            }
-	        }
 	    }
 	    Exit() {
 	        super.Exit();
@@ -1897,6 +1915,9 @@ var LLS = (function (exports) {
 	            },
 	            cosplayEarEnabled: false,
 	            cosplayEars: { name: "", creator: 0 },
+	            cosplayTailColor: "#060606",
+	            gagCollarEnabled: false,
+	            gagCollar: { name: "", creator: 0 },
 	        };
 	    }
 	    get settingsScreen() {
@@ -1905,10 +1926,10 @@ var LLS = (function (exports) {
 	    Load() {
 	        onChat(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
 	            var _a;
-	            let collarSettings = (_a = Player.LLS) === null || _a === void 0 ? void 0 : _a.ArtifactModule;
-	            if (collarSettings && collarSettings.petsuitCollarSetting.enabled) {
-	                if (isPhraseInString(msg.toLowerCase(), collarSettings.petsuitCollarSetting.trigger.toLowerCase(), true) && this.wearingPetsuitCollar(Player)) {
-	                    if ((sender === null || sender === void 0 ? void 0 : sender.IsPlayer()) && !collarSettings.petsuitCollarSetting.allowSelfTrigger)
+	            let petsuitCollarSettings = (_a = Player.LLS) === null || _a === void 0 ? void 0 : _a.ArtifactModule;
+	            if (petsuitCollarSettings && petsuitCollarSettings.petsuitCollarSetting.enabled) {
+	                if (isPhraseInString(msg.toLowerCase(), petsuitCollarSettings.petsuitCollarSetting.trigger.toLowerCase(), true) && this.wearingPetsuitCollar(Player)) {
+	                    if ((sender === null || sender === void 0 ? void 0 : sender.IsPlayer()) && !petsuitCollarSettings.petsuitCollarSetting.allowSelfTrigger)
 	                        return;
 	                    else if (sender === null || sender === void 0 ? void 0 : sender.IsPlayer())
 	                        this.petsuitCollarToggle(Player);
@@ -1916,6 +1937,8 @@ var LLS = (function (exports) {
 	                        this.petsuitCollarToggle(Player);
 	                    }
 	                }
+	            }
+	            else if (this.settings.gagCollarEnabled && this.wearingGagCollar(Player)) {
 	            }
 	            return;
 	        });
@@ -1935,7 +1958,24 @@ var LLS = (function (exports) {
 	            
 	            return next(args);
 	        }, ModuleCategory.Artifacts);*/
-	        onWhisper(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => { });
+	        onWhisper(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
+	            var _a;
+	            let petsuitCollarSettings = (_a = Player.LLS) === null || _a === void 0 ? void 0 : _a.ArtifactModule;
+	            if (petsuitCollarSettings && petsuitCollarSettings.petsuitCollarSetting.enabled) {
+	                if (isPhraseInString(msg.toLowerCase(), petsuitCollarSettings.petsuitCollarSetting.trigger.toLowerCase(), true) && this.wearingPetsuitCollar(Player)) {
+	                    if ((sender === null || sender === void 0 ? void 0 : sender.IsPlayer()) && !petsuitCollarSettings.petsuitCollarSetting.allowSelfTrigger)
+	                        return;
+	                    else if (sender === null || sender === void 0 ? void 0 : sender.IsPlayer())
+	                        this.petsuitCollarToggle(Player);
+	                    else if (this.isAllowedPetsuitCollarMember(sender)) {
+	                        this.petsuitCollarToggle(Player);
+	                    }
+	                }
+	            }
+	            else if (this.settings.gagCollarEnabled && this.wearingGagCollar(Player)) {
+	            }
+	            return;
+	        });
 	        onActivity(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
 	        });
 	        onAction(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
@@ -1955,6 +1995,36 @@ var LLS = (function (exports) {
 	            return;
 	        });
 	    }
+	    // Gag collar
+	    wearingGagCollar(C) {
+	        var _a, _b, _c;
+	        var collar = InventoryGet(C, "ItemNeck");
+	        if (!collar)
+	            return false;
+	        var collarName = (_a = collar === null || collar === void 0 ? void 0 : collar.Asset.Name) !== null && _a !== void 0 ? _a : "";
+	        var collarCreator = (_c = (_b = collar === null || collar === void 0 ? void 0 : collar.Craft) === null || _b === void 0 ? void 0 : _b.MemberNumber) !== null && _c !== void 0 ? _c : -1;
+	        return collarName == this.settings.gagCollar.name && collarCreator == this.settings.gagCollar.creator;
+	    }
+	    toggleGagCollar(C) {
+	        if (this.wearingGagCollar(C)) {
+	            this.deactivateGagCollar(C);
+	        }
+	        else {
+	            this.activateGagCollar(C);
+	        }
+	    }
+	    activateGagCollar(C) {
+	        InventoryWear(C, "BallGag", "ItemMouth2", "#4FD5F7");
+	        let gag = InventoryGet(C, "ItemMouth2");
+	        if (gag && gag.Property && gag.Property.TypeRecord)
+	            gag.Property.TypeRecord.typed = 2;
+	        ChatRoomCharacterUpdate(C);
+	    }
+	    deactivateGagCollar(C) {
+	        InventoryRemove(C, "ItemMouth2");
+	        ChatRoomCharacterUpdate(C);
+	    }
+	    //Cosplay Ears + Tail
 	    wearingCosplayEars(C) {
 	        var _a, _b, _c, _d, _e, _f, _g;
 	        let ears = InventoryGet(C, "ItemHood");
@@ -1974,7 +2044,10 @@ var LLS = (function (exports) {
 	    activateCosplayTail(C) {
 	        if (!this.wearingCosplayEars(C))
 	            return;
-	        InventoryWear(C, "KittenTailStrap1", "TailStraps", "#060606");
+	        let color = this.settings.cosplayTailColor;
+	        if (!color.startsWith("#"))
+	            color = "#" + color;
+	        InventoryWear(C, "KittenTailStrap1", "TailStraps", color);
 	        ChatRoomCharacterUpdate(C);
 	    }
 	    deactivateCosplayTail(C) {
@@ -1983,6 +2056,7 @@ var LLS = (function (exports) {
 	        InventoryRemove(C, "TailStraps");
 	        ChatRoomCharacterUpdate(C);
 	    }
+	    // Cat Speech Mask
 	    catSpeech(data) {
 	        var _a, _b;
 	        let catSpeech = (_b = (_a = Player.LLS) === null || _a === void 0 ? void 0 : _a.ArtifactModule) === null || _b === void 0 ? void 0 : _b.catSpeechEnabled;
@@ -2012,6 +2086,7 @@ var LLS = (function (exports) {
 	            return true;
 	        return false;
 	    }
+	    // Petsuit Collar
 	    wearingPetsuitCollar(C) {
 	        var _a, _b, _c, _d, _e, _f;
 	        var collar = InventoryGet(C, "ItemNeck");

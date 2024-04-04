@@ -14,3 +14,8 @@ export interface GlobalPublicSettingsModel extends BaseSettingsModel {
 export interface MiscSettingsModel extends BaseSettingsModel {
     orgasmSkip: boolean;
 }
+
+export interface CraftModel {
+    name: string;
+    creator: number;
+}
