@@ -48,10 +48,10 @@ export class GuiReset extends GuiSubscreen {
 
 		if (MouseIn(1520, 720, 200, 80)) return this.Exit();
 
-		if (MouseIn(300, 720, 200, 80) && Date.now() >= this.allowedConfirmTime) return this.confirm();
+		if (MouseIn(300, 720, 200, 80) && Date.now() >= this.allowedConfirmTime) return this.Confirm();
 	}
 
-	confirm() {
+	Confirm() {
 		this.allowedConfirmTime = null;
 		getModule<CommandModule>("CommandModule")?.emergencyRelease();
 		this.Exit();

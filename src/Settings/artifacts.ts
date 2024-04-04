@@ -112,7 +112,14 @@ export class GuiArtifact extends GuiSubscreen {
 					description: "Forces the wearer to speek like a cat when wearing a cat mask.",
 					setting: () => this.settings.catSpeechEnabled ?? false,
 					setSetting: (val) => (this.settings.catSpeechEnabled = val),
-				},				
+				},	
+				<Setting>{
+					type: "checkbox",
+					label: "Cosplay Ears:",
+					description: "Enables cosplay ears features.",
+					setting: () => this.settings.cosplayEarEnabled ?? false,
+					setSetting: (val) => (this.settings.cosplayEarEnabled = val),
+				},			
 			]
 		];
 	}
@@ -166,6 +173,50 @@ export class GuiArtifact extends GuiSubscreen {
 					);
 			}
 			MainCanvas.textAlign = prev;
+		} else if (PreferencePageCurrent == 2) {
+			let prev = MainCanvas.textAlign;
+
+			MainCanvas.textAlign = "left";
+			let updateDisabled = !this.settings.cosplayEarEnabled;
+			DrawText(
+				"Update Cosplay Mask:",
+				this.getXPos(buttonPos),
+				this.getYPos(buttonPos),
+				updateDisabled ? "Gray" : "Black",
+				"Gray"
+			);
+			MainCanvas.textAlign = "center";
+			DrawButton(
+				this.getXPos(buttonPos) + 464,
+				this.getYPos(buttonPos) - 32,
+				200,
+				64,
+				"Update",
+				updateDisabled ? "#CCCCCC" : "White",
+				undefined,
+				updateDisabled ? "" : "Update Collar to Current",
+				updateDisabled
+			);
+
+			MainCanvas.textAlign = "left";
+			if (!!this.settings.cosplayEars) {
+				DrawText(
+					"Current Name: " + this.settings.cosplayEars.name,
+					this.getXPos(buttonPos),
+					this.getYPos(buttonPos) + 60,
+					"Gray",
+					"Gray"
+				);
+				if (!!this.settings.cosplayEars.creator && this.settings.cosplayEars.creator > 0)
+					DrawText(
+						"Current Crafter: " + this.settings.cosplayEars.creator,
+						this.getXPos(buttonPos),
+						this.getYPos(buttonPos) + 110,
+						"Gray",
+						"Gray"
+					);
+			}
+			MainCanvas.textAlign = prev;
 		}
 	}
 
@@ -183,6 +234,23 @@ export class GuiArtifact extends GuiSubscreen {
 					} else {
 						this.message = "Collar updated";
 						this.settings.petsuitCollarSetting.petsuitCollar = <PetsuitCollarModel>{
+							name: collar.Craft?.Name ?? collar.Asset.Name,
+							creator: collar.Craft?.MemberNumber ?? 0,
+						};
+					}
+				}
+			}
+		} else if (PreferencePageCurrent == 2) {
+			if (this.settings.cosplayEarEnabled) {
+				// Update Collar Button
+				let buttonPos = this.structure.length;
+				if (MouseIn(this.getXPos(buttonPos) + 464, this.getYPos(buttonPos) - 32, 200, 64)) {
+					var collar = InventoryGet(Player, "ItemNeck");
+					if (!collar) {
+						this.message = "No Collar Equipped";
+					} else {
+						this.message = "Collar updated";
+						this.settings.cosplayEars = <PetsuitCollarModel>{
 							name: collar.Craft?.Name ?? collar.Asset.Name,
 							creator: collar.Craft?.MemberNumber ?? 0,
 						};

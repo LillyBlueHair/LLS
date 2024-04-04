@@ -76,5 +76,6 @@ export class PublicSettingsModel implements IPublicSettingsModel {
 			publicRopeOfTighteningEnabled: false,
 			ropeOfTightening: <RopeOfTighteningModel>{ name: "", creator: 0 },
 		},
+		cosplayEarEnabled: false,
 	};
 }

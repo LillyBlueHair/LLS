@@ -1,4 +1,4 @@
-import bcModSDKRef, { PatchHook } from "bondage-club-mod-sdk";
+import bcModSDKRef, { GetDotedPathType, PatchHook } from "bondage-club-mod-sdk";
 import { getModule } from "modules";
 import { CoreModule } from "Modules/core";
 import { ModuleCategory } from "Settings/settingDefinitions";
@@ -225,6 +225,14 @@ function initPatchableFunction(target: string): IPatchedFunctionData {
         patchedFunctions.set(target, result);
     }
     return result;
+}
+
+export function callOriginal<TFunctionName extends string>(
+	target: TFunctionName,
+	args: [...Parameters<GetDotedPathType<typeof globalThis, TFunctionName>>],
+	context?: any
+): ReturnType<GetDotedPathType<typeof globalThis, TFunctionName>> {
+	return bcModSDK.callOriginal(target, args);
 }
 
 export function onWhisper(

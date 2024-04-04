@@ -2,11 +2,13 @@ import { BaseSettingsModel } from "./base";
 
 export interface ArtifactSettingsModel extends ArtifactPublicSettingsModel { 
     ropeOfTightening: RopeOfTighteningModel;
+    cosplayEarEnabled: boolean;
+    catSpeechEnabled: boolean;
+    cosplayEars: CosplayEarSettingsModel;
 }
 
 export interface ArtifactPublicSettingsModel extends BaseSettingsModel {
     petsuitCollarSetting: PetsuitCollarSettingsModel;
-    catSpeechEnabled: boolean;
 }
 
 export interface PetsuitCollarSettingsModel {
@@ -29,7 +31,14 @@ export interface PetsuitCollarModel  {
     name: string;
     creator: number;
 }
-    
+
+export interface CosplayEarSettingsModel {
+    name: string;
+    creator: number;
+}
+ 
+/*export interface CosplayEarSettingsModel {
+}*/
 
 export interface RopeOfTighteningModel {
     name: string;
