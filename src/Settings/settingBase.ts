@@ -220,7 +220,6 @@ export abstract class GuiSubscreen {
 						var name = collar.Craft.Name;
 						var creator = collar.Craft.MemberNumber;
 						item.setSetting(<CraftModel>{name: name, creator: creator});
-						console.log(item.setting());
 					}else if (MouseIn(this.getXPos(ix) + 464, this.getYPos(ix) + 40, 200, 64) && !item.disabled) {
 						item.setSetting({name: "", creator: 0});
 					}

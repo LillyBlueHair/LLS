@@ -51,7 +51,6 @@ export class MainMenu extends GuiSubscreen {
 		
 		MainCanvas.textAlign = "center";
 		let i = 0;
-		//console.log(this.subscreens);
 		for (const screen of this.subscreens) {
 			const PX = Math.floor(i / 6);
 			const PY = i % 6;

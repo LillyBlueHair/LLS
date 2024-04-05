@@ -294,14 +294,34 @@ var LLS = (function (exports) {
 	        next(args);
 	    }, module);
 	}
-	function onChat(priority, module, callback) {
-	    hookFunction("ChatRoomMessage", priority, (args, next) => {
-	        var data = args[0];
-	        var sender = getChatroomCharacter(data.Sender);
-	        if (data.Type == "Chat" || data.Type == "Whisper")
-	            callback(data, sender, data.Content, data.Dictionary);
-	        next(args);
-	    }, module);
+	function onChat(priority, module, allowGarble = false, afterOtherFunctions = false, callback) {
+	    if (allowGarble) {
+	        hookFunction("ChatRoomMessage", priority, (args, next) => {
+	            if (afterOtherFunctions)
+	                next(args);
+	            var data = args[0];
+	            var sender = getChatroomCharacter(data.Sender);
+	            if (data.Type == "Chat" || data.Type == "Whisper")
+	                callback(data, sender, data.Content, data.Dictionary);
+	            if (!afterOtherFunctions)
+	                next(args);
+	        }, module);
+	    }
+	    else {
+	        hookFunction("ChatRoomMessage", priority, (args, next) => {
+	            if (afterOtherFunctions)
+	                next(args);
+	            var data = args[0];
+	            var sender = getChatroomCharacter(data.Sender);
+	            var ungarbled = data.Content;
+	            data.Content = callOriginal("SpeechGarble", [sender, ungarbled]);
+	            if (data.Type == "Chat" || data.Type == "Whisper")
+	                callback(data, sender, data.Content, data.Dictionary);
+	            data.Content = ungarbled;
+	            if (!afterOtherFunctions)
+	                next(args);
+	        }, module);
+	    }
 	}
 	function onAction(priority, module, callback) {
 	    hookFunction("ChatRoomMessage", priority, (args, next) => {
@@ -751,7 +771,6 @@ var LLS = (function (exports) {
 	                        var name = collar.Craft.Name;
 	                        var creator = collar.Craft.MemberNumber;
 	                        item.setSetting({ name: name, creator: creator });
-	                        console.log(item.setting());
 	                    }
 	                    else if (MouseIn(this.getXPos(ix) + 464, this.getYPos(ix) + 40, 200, 64) && !item.disabled) {
 	                        item.setSetting({ name: "", creator: 0 });
@@ -995,7 +1014,6 @@ var LLS = (function (exports) {
 	        DrawButton(1815, 75, 90, 90, "", "White", "Icons/Exit.png");
 	        MainCanvas.textAlign = "center";
 	        let i = 0;
-	        //console.log(this.subscreens);
 	        for (const screen of this.subscreens) {
 	            const PX = Math.floor(i / 6);
 	            const PY = i % 6;
@@ -1840,6 +1858,15 @@ var LLS = (function (exports) {
 	                    setSetting: (val) => (this.settings.gagCollarEnabled = val),
 	                },
 	                {
+	                    type: "text",
+	                    id: "gagCollar_trigger",
+	                    label: "Trigger:",
+	                    description: "Sets the trigger word/sentence for the gag collar.",
+	                    setting: () => { var _a; return (_a = this.settings.gagCollarTrigger) !== null && _a !== void 0 ? _a : ""; },
+	                    setSetting: (val) => (this.settings.gagCollarTrigger = val),
+	                    disabled: !this.settings.gagCollarEnabled,
+	                },
+	                {
 	                    type: "craftselect",
 	                    id: "gagCollar",
 	                    label: "Gag Collar",
@@ -1918,19 +1945,21 @@ var LLS = (function (exports) {
 	            cosplayTailColor: "#060606",
 	            gagCollarEnabled: false,
 	            gagCollar: { name: "", creator: 0 },
+	            gagCollarTrigger: "",
 	        };
 	    }
 	    get settingsScreen() {
 	        return GuiArtifact;
 	    }
 	    Load() {
-	        onChat(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
+	        onChat(100, ModuleCategory.Artifacts, false, true, (data, sender, msg, metadata) => {
 	            var _a;
-	            let petsuitCollarSettings = (_a = Player.LLS) === null || _a === void 0 ? void 0 : _a.ArtifactModule;
-	            if (petsuitCollarSettings && petsuitCollarSettings.petsuitCollarSetting.enabled) {
-	                if (isPhraseInString(msg.toLowerCase(), petsuitCollarSettings.petsuitCollarSetting.trigger.toLowerCase(), true) && this.wearingPetsuitCollar(Player)) {
-	                    if ((sender === null || sender === void 0 ? void 0 : sender.IsPlayer()) && !petsuitCollarSettings.petsuitCollarSetting.allowSelfTrigger)
-	                        return;
+	            let artifactSettings = (_a = Player.LLS) === null || _a === void 0 ? void 0 : _a.ArtifactModule;
+	            if (artifactSettings && artifactSettings.petsuitCollarSetting.enabled) {
+	                if (artifactSettings.petsuitCollarSetting.trigger.trim() != "" &&
+	                    isPhraseInString(msg.toLowerCase(), artifactSettings.petsuitCollarSetting.trigger.toLowerCase(), false) &&
+	                    this.wearingPetsuitCollar(Player)) {
+	                    if ((sender === null || sender === void 0 ? void 0 : sender.IsPlayer()) && !artifactSettings.petsuitCollarSetting.allowSelfTrigger) { }
 	                    else if (sender === null || sender === void 0 ? void 0 : sender.IsPlayer())
 	                        this.petsuitCollarToggle(Player);
 	                    else if (this.isAllowedPetsuitCollarMember(sender)) {
@@ -1938,46 +1967,16 @@ var LLS = (function (exports) {
 	                    }
 	                }
 	            }
-	            else if (this.settings.gagCollarEnabled && this.wearingGagCollar(Player)) {
-	            }
-	            return;
-	        });
-	        /*hookFunction("SpeechGarble", 65, (args, next) => {
-	            if (!this.Enabled)
-	                return next(args);
-
-	            const C = args[0] as Character;
-	            if (ChatRoomIsViewActive(ChatRoomMapViewName) && !ChatRoomMapViewCharacterIsHearable(C))
-	                return next(args);
-	                
-	            console.log(args[0]+"0")
-	            // Check for non-garbled trigger word, this means a trigger word could be set to what garbled speech produces >.>
-	            let msg = callOriginal("SpeechGarble", [args[0], args[1]]);
-	            console.log(msg+"1")
-	            
-	            
-	            return next(args);
-	        }, ModuleCategory.Artifacts);*/
-	        onWhisper(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
-	            var _a;
-	            let petsuitCollarSettings = (_a = Player.LLS) === null || _a === void 0 ? void 0 : _a.ArtifactModule;
-	            if (petsuitCollarSettings && petsuitCollarSettings.petsuitCollarSetting.enabled) {
-	                if (isPhraseInString(msg.toLowerCase(), petsuitCollarSettings.petsuitCollarSetting.trigger.toLowerCase(), true) && this.wearingPetsuitCollar(Player)) {
-	                    if ((sender === null || sender === void 0 ? void 0 : sender.IsPlayer()) && !petsuitCollarSettings.petsuitCollarSetting.allowSelfTrigger)
-	                        return;
-	                    else if (sender === null || sender === void 0 ? void 0 : sender.IsPlayer())
-	                        this.petsuitCollarToggle(Player);
-	                    else if (this.isAllowedPetsuitCollarMember(sender)) {
-	                        this.petsuitCollarToggle(Player);
-	                    }
+	            if (artifactSettings.gagCollarEnabled && this.wearingGagCollar(Player)) {
+	                console.log("Gag collar enabled");
+	                if (artifactSettings.gagCollarTrigger.trim() != "" && isPhraseInString(msg.toLowerCase(), artifactSettings.gagCollarTrigger.toLowerCase(), false)) {
+	                    console.log("Gag collar trigger found");
+	                    this.toggleGagCollar(Player);
 	                }
 	            }
-	            else if (this.settings.gagCollarEnabled && this.wearingGagCollar(Player)) {
-	            }
 	            return;
 	        });
-	        onActivity(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
-	        });
+	        onActivity(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => { });
 	        onAction(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
 	            if (msg == "ItemHoodHarnessCatMaskSetEars") {
 	                this.activateCosplayTail(Player);
@@ -1997,16 +1996,17 @@ var LLS = (function (exports) {
 	    }
 	    // Gag collar
 	    wearingGagCollar(C) {
-	        var _a, _b, _c;
+	        var _a, _b, _c, _d;
 	        var collar = InventoryGet(C, "ItemNeck");
+	        console.log(collar);
 	        if (!collar)
 	            return false;
-	        var collarName = (_a = collar === null || collar === void 0 ? void 0 : collar.Asset.Name) !== null && _a !== void 0 ? _a : "";
-	        var collarCreator = (_c = (_b = collar === null || collar === void 0 ? void 0 : collar.Craft) === null || _b === void 0 ? void 0 : _b.MemberNumber) !== null && _c !== void 0 ? _c : -1;
+	        var collarName = (_b = (_a = collar === null || collar === void 0 ? void 0 : collar.Craft) === null || _a === void 0 ? void 0 : _a.Name) !== null && _b !== void 0 ? _b : "";
+	        var collarCreator = (_d = (_c = collar === null || collar === void 0 ? void 0 : collar.Craft) === null || _c === void 0 ? void 0 : _c.MemberNumber) !== null && _d !== void 0 ? _d : -1;
 	        return collarName == this.settings.gagCollar.name && collarCreator == this.settings.gagCollar.creator;
 	    }
 	    toggleGagCollar(C) {
-	        if (this.wearingGagCollar(C)) {
+	        if (InventoryGet(C, "ItemMouth2")) {
 	            this.deactivateGagCollar(C);
 	        }
 	        else {

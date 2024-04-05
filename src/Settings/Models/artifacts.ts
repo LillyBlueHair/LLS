@@ -7,6 +7,7 @@ export interface ArtifactSettingsModel extends ArtifactPublicSettingsModel {
     catSpeechEnabled: boolean;
     gagCollarEnabled: boolean;
     gagCollar: GagCollarModel;
+    gagCollarTrigger: string;
 }
 
 export interface ArtifactPublicSettingsModel extends BaseSettingsModel {

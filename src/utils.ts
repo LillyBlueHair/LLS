@@ -228,11 +228,11 @@ function initPatchableFunction(target: string): IPatchedFunctionData {
 }
 
 export function callOriginal<TFunctionName extends string>(
-	target: TFunctionName,
-	args: [...Parameters<GetDotedPathType<typeof globalThis, TFunctionName>>],
-	context?: any
+    target: TFunctionName,
+    args: [...Parameters<GetDotedPathType<typeof globalThis, TFunctionName>>],
+    context?: any
 ): ReturnType<GetDotedPathType<typeof globalThis, TFunctionName>> {
-	return bcModSDK.callOriginal(target, args);
+    return bcModSDK.callOriginal(target, args);
 }
 
 export function onWhisper(
@@ -257,18 +257,44 @@ export function onWhisper(
     );
 }
 
-export function onChat(priority: any, module: ModuleCategory, callback: (data: any, sender: Character | null, msg: string, metadata: any) => void) {
-    hookFunction(
-        "ChatRoomMessage",
-        priority,
-        (args, next) => {
-            var data = args[0];
-            var sender = getChatroomCharacter(data.Sender);
-            if (data.Type == "Chat" || data.Type == "Whisper") callback(data, sender, data.Content, data.Dictionary);
-            next(args);
-        },
-        module
-    );
+export function onChat(
+    priority: any,
+    module: ModuleCategory,
+    allowGarble: boolean = false,
+    afterOtherFunctions: boolean = false,
+    callback: (data: any, sender: Character | null, msg: string, metadata: any) => void
+) {
+    if (allowGarble) {
+        hookFunction(
+            "ChatRoomMessage",
+            priority,
+            (args, next) => {
+                if(afterOtherFunctions)next(args);
+                
+                var data = args[0];
+                var sender = getChatroomCharacter(data.Sender);
+                if (data.Type == "Chat" || data.Type == "Whisper") callback(data, sender, data.Content, data.Dictionary);
+                if(!afterOtherFunctions)next(args);
+            },
+            module
+        );
+    } else {
+        hookFunction(
+            "ChatRoomMessage",
+            priority,
+            (args, next) => {
+                if(afterOtherFunctions)next(args);
+                var data = args[0];
+                var sender = getChatroomCharacter(data.Sender) as Character;
+                var ungarbled = data.Content;
+                data.Content = callOriginal("SpeechGarble", [sender, ungarbled])
+                if (data.Type == "Chat" || data.Type == "Whisper") callback(data, sender, data.Content, data.Dictionary);
+                data.Content = ungarbled;
+                if(!afterOtherFunctions)next(args);
+            },
+            module
+        );
+    }
 }
 
 export function onAction(priority: any, module: ModuleCategory, callback: (data: any, sender: Character | null, msg: string, metadata: any) => void) {
@@ -311,8 +337,7 @@ export function onSentMessage(priority: any, module: ModuleCategory, callback: (
             var data = args[1];
             var sender = getChatroomCharacter(data.Sender);
             if (args[0] === "ChatRoomChat") {
-                if (!data.Content.startsWith("("))
-                	callback(data, sender, data.Content, data.Dictionary);
+                if (!data.Content.startsWith("(")) callback(data, sender, data.Content, data.Dictionary);
             }
             next(args);
         },

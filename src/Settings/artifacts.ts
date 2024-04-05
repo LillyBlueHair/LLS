@@ -154,6 +154,15 @@ export class GuiArtifact extends GuiSubscreen {
                     setSetting: (val) => (this.settings.gagCollarEnabled = val),
                 },
                 <Setting>{
+                    type: "text",
+                    id: "gagCollar_trigger",
+                    label: "Trigger:",
+                    description: "Sets the trigger word/sentence for the gag collar.",
+                    setting: () => this.settings.gagCollarTrigger ?? "",
+                    setSetting: (val) => (this.settings.gagCollarTrigger = val),
+                    disabled: !this.settings.gagCollarEnabled,
+                },
+                <Setting>{
                     type: "craftselect",
                     id: "gagCollar",
                     label: "Gag Collar",
