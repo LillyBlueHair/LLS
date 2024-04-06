@@ -1806,7 +1806,7 @@ var LLS = (function (exports) {
 	                    slot: "ItemNeck",
 	                    description: "The current collar equipped.",
 	                    setting: () => this.settings.petsuitCollarSetting.petsuitCollar,
-	                    setSetting: (val) => (this.settings.petsuitCollarSetting.petsuitCollar = { name: val.name, creator: val.creator }),
+	                    setSetting: (val) => (this.settings.petsuitCollarSetting.petsuitCollar = val),
 	                    disabled: !this.settings.petsuitCollarSetting.enabled,
 	                },
 	                {
@@ -1844,7 +1844,7 @@ var LLS = (function (exports) {
 	                    slot: "ItemHood",
 	                    description: "The current mask equipped.",
 	                    setting: () => this.settings.cosplayEars,
-	                    setSetting: (val) => (this.settings.cosplayEars = { name: val.name, creator: val.creator }),
+	                    setSetting: (val) => (this.settings.cosplayEars = val),
 	                    disabled: !this.settings.cosplayEarEnabled,
 	                },
 	                {
@@ -1873,8 +1873,37 @@ var LLS = (function (exports) {
 	                    slot: "ItemNeck",
 	                    description: "The current collar equipped.",
 	                    setting: () => this.settings.gagCollar,
-	                    setSetting: (val) => (this.settings.gagCollar = { name: val.name, creator: val.creator }),
+	                    setSetting: (val) => (this.settings.gagCollar = val),
 	                    disabled: !this.settings.gagCollarEnabled,
+	                },
+	                {
+	                    type: "null"
+	                },
+	                {
+	                    type: "checkbox",
+	                    label: "Leash Collar:",
+	                    description: "Enables leash collar features.",
+	                    setting: () => { var _a; return (_a = this.settings.leashCollarEnabled) !== null && _a !== void 0 ? _a : false; },
+	                    setSetting: (val) => (this.settings.leashCollarEnabled = val),
+	                },
+	                {
+	                    type: "text",
+	                    id: "leashCollar_trigger",
+	                    label: "Trigger:",
+	                    description: "Sets the trigger word/sentence for the leash collar.",
+	                    setting: () => { var _a; return (_a = this.settings.leashCollarTrigger) !== null && _a !== void 0 ? _a : ""; },
+	                    setSetting: (val) => (this.settings.leashCollarTrigger = val),
+	                    disabled: !this.settings.leashCollarEnabled,
+	                },
+	                {
+	                    type: "craftselect",
+	                    id: "leashCollar",
+	                    label: "Leash Collar",
+	                    slot: "ItemNeck",
+	                    description: "The current collar equipped.",
+	                    setting: () => this.settings.leashCollar,
+	                    setSetting: (val) => (this.settings.leashCollar = val),
+	                    disabled: !this.settings.leashCollarEnabled,
 	                },
 	                {
 	                    type: "null"
@@ -1946,6 +1975,9 @@ var LLS = (function (exports) {
 	            gagCollarEnabled: false,
 	            gagCollar: { name: "", creator: 0 },
 	            gagCollarTrigger: "",
+	            leashCollarEnabled: false,
+	            leashCollar: { name: "", creator: 0 },
+	            leashCollarTrigger: "",
 	        };
 	    }
 	    get settingsScreen() {
@@ -1974,6 +2006,11 @@ var LLS = (function (exports) {
 	                    this.toggleGagCollar(Player);
 	                }
 	            }
+	            if (artifactSettings.leashCollarEnabled && this.wearingLeashCollar(Player)) {
+	                if (artifactSettings.leashCollarTrigger.trim() != "" && isPhraseInString(msg.toLowerCase(), artifactSettings.leashCollarTrigger.toLowerCase(), false)) {
+	                    this.toggleLeashCollar(Player);
+	                }
+	            }
 	            return;
 	        });
 	        onActivity(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => { });
@@ -1993,6 +2030,33 @@ var LLS = (function (exports) {
 	            }
 	            return;
 	        });
+	    }
+	    // Leash Collar
+	    wearingLeashCollar(C) {
+	        var _a, _b, _c, _d;
+	        var collar = InventoryGet(C, "ItemNeck");
+	        if (!collar)
+	            return false;
+	        var collarName = (_b = (_a = collar === null || collar === void 0 ? void 0 : collar.Craft) === null || _a === void 0 ? void 0 : _a.Name) !== null && _b !== void 0 ? _b : "";
+	        var collarCreator = (_d = (_c = collar === null || collar === void 0 ? void 0 : collar.Craft) === null || _c === void 0 ? void 0 : _c.MemberNumber) !== null && _d !== void 0 ? _d : -1;
+	        return collarName == this.settings.leashCollar.name && collarCreator == this.settings.leashCollar.creator;
+	    }
+	    toggleLeashCollar(C) {
+	        var leash = InventoryGet(C, "ItemNeckRestraints");
+	        if (leash) {
+	            this.deactivateLeashCollar(C);
+	        }
+	        else {
+	            this.activateLeashCollar(C);
+	        }
+	    }
+	    activateLeashCollar(C) {
+	        InventoryWear(C, "CollarLeash", "ItemNeckRestraints", "#333333");
+	        ChatRoomCharacterUpdate(C);
+	    }
+	    deactivateLeashCollar(C) {
+	        InventoryRemove(C, "ItemNeckRestraints");
+	        ChatRoomCharacterUpdate(C);
 	    }
 	    // Gag collar
 	    wearingGagCollar(C) {
@@ -2438,6 +2502,16 @@ var LLS = (function (exports) {
 	                    setSetting: (val) => (this.settings.petsuitCollarSetting.locked = val),
 	                    disabled: !this.settings.petsuitCollarSetting.enabled || !this.settings.petsuitCollarSetting.lockable,
 	                },
+	                {
+	                    type: "craftselect",
+	                    id: "petsuitCollar",
+	                    label: "Petsuit Collar",
+	                    slot: "ItemNeck",
+	                    description: "The current collar equipped.",
+	                    setting: () => this.settings.petsuitCollarSetting.petsuitCollar,
+	                    setSetting: (val) => (this.settings.petsuitCollarSetting.petsuitCollar = val),
+	                    disabled: !this.settings.petsuitCollarSetting.enabled,
+	                },
 	            ], /*[
 	                <Setting>{
 	                    type: "checkbox",
@@ -2451,55 +2525,9 @@ var LLS = (function (exports) {
 	    }
 	    Run() {
 	        super.Run();
-	        var prev = MainCanvas.textAlign;
-	        let buttonPos = this.structure.length;
-	        if (super.PreferenceColorPick != "" &&
-	            ((super.PreferenceColorPickLeft && this.getXPos(buttonPos) < 1000) ||
-	                (!super.PreferenceColorPickLeft && this.getXPos(buttonPos) > 1000)))
-	            return;
-	        else if (this.settings.petsuitCollarSetting.enabled && PreferencePageCurrent == 1) {
-	            MainCanvas.textAlign = "left";
-	            // Set/Update Collar	 	[Custom??]
-	            let updateDisabled = !this.settings.petsuitCollarSetting.enabled;
-	            DrawText("Update Collar:", this.getXPos(buttonPos), this.getYPos(buttonPos), updateDisabled ? "Gray" : "Black", "Gray");
-	            MainCanvas.textAlign = "center";
-	            DrawButton(this.getXPos(buttonPos) + 464, this.getYPos(buttonPos) - 32, 200, 64, "Update", updateDisabled ? "#CCCCCC" : "White", undefined, updateDisabled ? "" : "Update Collar to Current", updateDisabled);
-	            MainCanvas.textAlign = "left";
-	            if (!!this.settings.petsuitCollarSetting.petsuitCollar) {
-	                DrawText("Current Name: " + this.settings.petsuitCollarSetting.petsuitCollar.name, this.getXPos(buttonPos), this.getYPos(buttonPos) + 60, "Gray", "Gray");
-	                if (!!this.settings.petsuitCollarSetting.petsuitCollar.creator && this.settings.petsuitCollarSetting.petsuitCollar.creator > 0)
-	                    DrawText("Current Crafter: " + this.settings.petsuitCollarSetting.petsuitCollar.creator, this.getXPos(buttonPos), this.getYPos(buttonPos) + 110, "Gray", "Gray");
-	            }
-	        }
-	        MainCanvas.textAlign = prev;
 	    }
 	    Click() {
-	        var _a, _b, _c, _d;
 	        super.Click();
-	        let buttonPos = this.structure.length;
-	        if (super.PreferenceColorPick != "" &&
-	            ((super.PreferenceColorPickLeft && this.getXPos(buttonPos) < 1000) ||
-	                (!super.PreferenceColorPickLeft && this.getXPos(buttonPos) > 1000)))
-	            return;
-	        else if (this.settings.petsuitCollarSetting.enabled && PreferencePageCurrent == 1) {
-	            if (this.settings.petsuitCollarSetting.enabled) {
-	                // Update Collar Button
-	                let buttonPos = this.structure.length;
-	                if (MouseIn(this.getXPos(buttonPos) + 464, this.getYPos(buttonPos) - 32, 200, 64)) {
-	                    var collar = InventoryGet(this.Character, "ItemNeck");
-	                    if (!collar) {
-	                        this.message = "No Collar Equipped";
-	                    }
-	                    else {
-	                        this.message = "Collar updated";
-	                        this.settings.petsuitCollarSetting.petsuitCollar = {
-	                            name: (_b = (_a = collar.Craft) === null || _a === void 0 ? void 0 : _a.Name) !== null && _b !== void 0 ? _b : collar.Asset.Name,
-	                            creator: (_d = (_c = collar.Craft) === null || _c === void 0 ? void 0 : _c.MemberNumber) !== null && _d !== void 0 ? _d : 0,
-	                        };
-	                    }
-	                }
-	            }
-	        }
 	    }
 	}
 

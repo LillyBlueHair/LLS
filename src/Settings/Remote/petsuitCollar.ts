@@ -1,7 +1,8 @@
 import { RemoteGuiSubscreen } from "./remoteBase";
 import { Setting } from "Settings/settingBase";
 import { getDelimitedList } from "utils";
-import { PetsuitCollarModel, ArtifactPublicSettingsModel } from "Settings/Models/artifacts";
+import { ArtifactPublicSettingsModel } from "Settings/Models/artifacts";
+import { CraftModel } from "Settings/Models/base";
 
 export class RemotePetsuitCollar extends RemoteGuiSubscreen {
 	subscreens: RemoteGuiSubscreen[] = [];
@@ -115,6 +116,16 @@ export class RemotePetsuitCollar extends RemoteGuiSubscreen {
 					setSetting: (val) => (this.settings.petsuitCollarSetting.locked = val),
 					disabled: !this.settings.petsuitCollarSetting.enabled || !this.settings.petsuitCollarSetting.lockable,
 				},
+                <Setting>{
+                    type: "craftselect",
+                    id: "petsuitCollar",
+                    label: "Petsuit Collar",
+                    slot: "ItemNeck",
+                    description: "The current collar equipped.",
+                    setting: () => this.settings.petsuitCollarSetting.petsuitCollar,
+                    setSetting: (val) => (this.settings.petsuitCollarSetting.petsuitCollar = val),
+                    disabled: !this.settings.petsuitCollarSetting.enabled,
+                },
 			],/*[
 				<Setting>{
 					type: "checkbox",
@@ -131,88 +142,9 @@ export class RemotePetsuitCollar extends RemoteGuiSubscreen {
 	blinkColor = "Red";
 	Run(): void {
 		super.Run();
-
-		var prev = MainCanvas.textAlign;
-		let buttonPos = this.structure.length;
-		if (
-			super.PreferenceColorPick != "" &&
-			((super.PreferenceColorPickLeft && this.getXPos(buttonPos) < 1000) ||
-				(!super.PreferenceColorPickLeft && this.getXPos(buttonPos) > 1000))
-		)
-			return;
-		else if (this.settings.petsuitCollarSetting.enabled && PreferencePageCurrent == 1) {
-			MainCanvas.textAlign = "left";
-			// Set/Update Collar	 	[Custom??]
-			let updateDisabled = !this.settings.petsuitCollarSetting.enabled;
-			DrawText(
-				"Update Collar:",
-				this.getXPos(buttonPos),
-				this.getYPos(buttonPos),
-				updateDisabled ? "Gray" : "Black",
-				"Gray"
-			);
-			MainCanvas.textAlign = "center";
-			DrawButton(
-				this.getXPos(buttonPos) + 464,
-				this.getYPos(buttonPos) - 32,
-				200,
-				64,
-				"Update",
-				updateDisabled ? "#CCCCCC" : "White",
-				undefined,
-				updateDisabled ? "" : "Update Collar to Current",
-				updateDisabled
-			);
-
-			MainCanvas.textAlign = "left";
-			if (!!this.settings.petsuitCollarSetting.petsuitCollar) {
-				DrawText(
-					"Current Name: " + this.settings.petsuitCollarSetting.petsuitCollar.name,
-					this.getXPos(buttonPos),
-					this.getYPos(buttonPos) + 60,
-					"Gray",
-					"Gray"
-				);
-				if (!!this.settings.petsuitCollarSetting.petsuitCollar.creator && this.settings.petsuitCollarSetting.petsuitCollar.creator > 0)
-					DrawText(
-						"Current Crafter: " + this.settings.petsuitCollarSetting.petsuitCollar.creator,
-						this.getXPos(buttonPos),
-						this.getYPos(buttonPos) + 110,
-						"Gray",
-						"Gray"
-					);
-			}
-		}
-		MainCanvas.textAlign = prev;
 	}
 
 	Click() {
 		super.Click();
-		let buttonPos = this.structure.length;
-
-		if (
-			super.PreferenceColorPick != "" &&
-			((super.PreferenceColorPickLeft && this.getXPos(buttonPos) < 1000) ||
-				(!super.PreferenceColorPickLeft && this.getXPos(buttonPos) > 1000))
-		)
-			return;
-		else if (this.settings.petsuitCollarSetting.enabled && PreferencePageCurrent == 1) {
-			if (this.settings.petsuitCollarSetting.enabled) {
-				// Update Collar Button
-				let buttonPos = this.structure.length;
-				if (MouseIn(this.getXPos(buttonPos) + 464, this.getYPos(buttonPos) - 32, 200, 64)) {
-					var collar = InventoryGet(this.Character, "ItemNeck");
-					if (!collar) {
-						this.message = "No Collar Equipped";
-					} else {
-						this.message = "Collar updated";
-						this.settings.petsuitCollarSetting.petsuitCollar = <PetsuitCollarModel>{
-							name: collar.Craft?.Name ?? collar.Asset.Name,
-							creator: collar.Craft?.MemberNumber ?? 0,
-						};
-					}
-				}
-			}
-		}
 	}
 }

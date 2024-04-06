@@ -1,6 +1,7 @@
 import { BaseModule } from "base";
 import { GuiArtifact } from "Settings/artifacts";
-import { ArtifactSettingsModel, CosplayEarModel, GagCollarModel, PetsuitCollarModel } from "Settings/Models/artifacts";
+import { ArtifactSettingsModel } from "Settings/Models/artifacts";
+import { CraftModel } from "Settings/Models/base";
 import { ModuleCategory, Subscreen } from "Settings/settingDefinitions";
 import {
     itemsToItemBundles,
@@ -10,11 +11,8 @@ import {
     onActivity,
     onChat,
     onSentMessage,
-    onWhisper,
     removeAllHooksByModule,
     sendAction,
-    hookFunction,
-    callOriginal,
     onAction,
 } from "utils";
 
@@ -60,14 +58,18 @@ export class ArtifactModule extends BaseModule {
                 locked: false,
                 buckleColor: "#5AC5EE",
                 strapColor: "#2C2C2C",
-                petsuitCollar: <PetsuitCollarModel>{ name: "", creator: 0 },
+                petsuitCollar: <CraftModel>{ name: "", creator: 0 },
             },
             cosplayEarEnabled: false,
-            cosplayEars: <CosplayEarModel>{ name: "", creator: 0 },
+            cosplayEars: <CraftModel>{ name: "", creator: 0 },
             cosplayTailColor: "#060606",
             gagCollarEnabled: false,
-            gagCollar: <GagCollarModel>{ name: "", creator: 0 },
+            gagCollar: <CraftModel>{ name: "", creator: 0 },
             gagCollarTrigger: "",
+
+            leashCollarEnabled: false,
+            leashCollar: <CraftModel>{ name: "", creator: 0 },
+            leashCollarTrigger: "",
         };
     }
 
@@ -98,6 +100,11 @@ export class ArtifactModule extends BaseModule {
                     this.toggleGagCollar(Player);
                 }
             }
+            if (artifactSettings.leashCollarEnabled && this.wearingLeashCollar(Player)) {
+                if (artifactSettings.leashCollarTrigger.trim() != "" && isPhraseInString(msg.toLowerCase(), artifactSettings.leashCollarTrigger.toLowerCase(), false)) {
+                    this.toggleLeashCollar(Player);
+                }
+            }
             return;
         });
 
@@ -119,6 +126,34 @@ export class ArtifactModule extends BaseModule {
             }
             return;
         });
+    }
+
+    // Leash Collar
+    wearingLeashCollar(C: OtherCharacter | PlayerCharacter): boolean {
+        var collar = InventoryGet(C, "ItemNeck");
+        if (!collar) return false;
+        var collarName = collar?.Craft?.Name ?? "";
+        var collarCreator = collar?.Craft?.MemberNumber ?? -1;
+        return collarName == this.settings.leashCollar.name && collarCreator == this.settings.leashCollar.creator;
+    }
+
+    toggleLeashCollar(C: OtherCharacter | PlayerCharacter): void {
+        var leash = InventoryGet(C, "ItemNeckRestraints");
+        if (leash) {
+            this.deactivateLeashCollar(C);
+        } else {
+            this.activateLeashCollar(C);
+        }
+    }
+
+    activateLeashCollar(C: OtherCharacter | PlayerCharacter): void {
+        InventoryWear(C, "CollarLeash", "ItemNeckRestraints", "#333333");
+        ChatRoomCharacterUpdate(C);
+    }
+
+    deactivateLeashCollar(C: OtherCharacter | PlayerCharacter): void {
+        InventoryRemove(C, "ItemNeckRestraints");
+        ChatRoomCharacterUpdate(C);
     }
 
     // Gag collar

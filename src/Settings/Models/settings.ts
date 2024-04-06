@@ -1,9 +1,8 @@
 import {
 	ArtifactSettingsModel,
-	PetsuitCollarModel,
 	PetsuitCollarSettingsModel,
 } from "./artifacts";
-import { BaseSettingsModel, GlobalPublicSettingsModel, GlobalSettingsModel, MiscSettingsModel } from "./base";
+import { BaseSettingsModel, CraftModel, GlobalPublicSettingsModel, GlobalSettingsModel, MiscSettingsModel } from "./base";
 
 export interface ISettingsModel {
 	Version: string;
@@ -67,7 +66,7 @@ export class PublicSettingsModel implements IPublicSettingsModel {
 			locked: false,
 			buckleColor: "",
 			strapColor: "",
-			petsuitCollar: <PetsuitCollarModel>{ name: "", creator: 0 },
+			petsuitCollar: <CraftModel>{ name: "", creator: 0 },
 			ropeOfTighteningEnabled: false,
 			publicRopeOfTighteningEnabled: false,
 		},

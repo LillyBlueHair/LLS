@@ -1,4 +1,5 @@
-import { ArtifactSettingsModel, CosplayEarModel, GagCollarModel, PetsuitCollarModel } from "./Models/artifacts";
+import { ArtifactSettingsModel } from "./Models/artifacts";
+import { CraftModel } from "./Models/base";
 import { GuiSubscreen, Setting } from "./settingBase";
 import { getModule } from "modules";
 import { MiscModule } from "Modules/misc";
@@ -102,7 +103,7 @@ export class GuiArtifact extends GuiSubscreen {
                     slot: "ItemNeck",
                     description: "The current collar equipped.",
                     setting: () => this.settings.petsuitCollarSetting.petsuitCollar,
-                    setSetting: (val) => (this.settings.petsuitCollarSetting.petsuitCollar = <PetsuitCollarModel>{ name: val.name, creator: val.creator }),
+                    setSetting: (val) => (this.settings.petsuitCollarSetting.petsuitCollar = val),
                     disabled: !this.settings.petsuitCollarSetting.enabled,
                 },
                 <Setting>{
@@ -140,7 +141,7 @@ export class GuiArtifact extends GuiSubscreen {
                     slot: "ItemHood",
                     description: "The current mask equipped.",
                     setting: () => this.settings.cosplayEars,
-                    setSetting: (val) => (this.settings.cosplayEars = <CosplayEarModel>{ name: val.name, creator: val.creator }),
+                    setSetting: (val) => (this.settings.cosplayEars = val),
                     disabled: !this.settings.cosplayEarEnabled,
                 },
                 <Setting>{
@@ -169,8 +170,37 @@ export class GuiArtifact extends GuiSubscreen {
                     slot: "ItemNeck",
                     description: "The current collar equipped.",
                     setting: () => this.settings.gagCollar,
-                    setSetting: (val) => (this.settings.gagCollar = <GagCollarModel>{ name: val.name, creator: val.creator }),
+                    setSetting: (val) => (this.settings.gagCollar = val),
                     disabled: !this.settings.gagCollarEnabled,
+                },
+                <Setting>{
+                    type: "null"
+                },
+                <Setting>{
+                    type: "checkbox",
+                    label: "Leash Collar:",
+                    description: "Enables leash collar features.",
+                    setting: () => this.settings.leashCollarEnabled ?? false,
+                    setSetting: (val) => (this.settings.leashCollarEnabled = val),
+                },
+                <Setting>{
+                    type: "text",
+                    id: "leashCollar_trigger",
+                    label: "Trigger:",
+                    description: "Sets the trigger word/sentence for the leash collar.",
+                    setting: () => this.settings.leashCollarTrigger ?? "",
+                    setSetting: (val) => (this.settings.leashCollarTrigger = val),
+                    disabled: !this.settings.leashCollarEnabled,
+                },
+                <Setting>{
+                    type: "craftselect",
+                    id: "leashCollar",
+                    label: "Leash Collar",
+                    slot: "ItemNeck",
+                    description: "The current collar equipped.",
+                    setting: () => this.settings.leashCollar,
+                    setSetting: (val) => (this.settings.leashCollar = val),
+                    disabled: !this.settings.leashCollarEnabled,
                 },
                 <Setting>{
                     type: "null"

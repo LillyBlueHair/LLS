@@ -2,12 +2,17 @@ import { BaseSettingsModel, CraftModel } from "./base";
 
 export interface ArtifactSettingsModel extends ArtifactPublicSettingsModel { 
     cosplayEarEnabled: boolean;
-    cosplayEars: CosplayEarModel;
+    cosplayEars: CraftModel;
     cosplayTailColor: string;
     catSpeechEnabled: boolean;
+
     gagCollarEnabled: boolean;
-    gagCollar: GagCollarModel;
+    gagCollar: CraftModel;
     gagCollarTrigger: string;
+
+    leashCollarEnabled: boolean;
+    leashCollar: CraftModel;
+    leashCollarTrigger: string;
 }
 
 export interface ArtifactPublicSettingsModel extends BaseSettingsModel {
@@ -26,20 +31,5 @@ export interface PetsuitCollarSettingsModel {
     lockOwner: boolean;
     locked: boolean;
 
-    petsuitCollar: PetsuitCollarModel;
-}
-
-export interface PetsuitCollarModel extends CraftModel {
-    name: string;
-    creator: number;
-}
-
-export interface GagCollarModel extends CraftModel {
-    name: string;
-    creator: number;
-}
-
-export interface CosplayEarModel extends CraftModel {
-    name: string;
-    creator: number;
+    petsuitCollar: CraftModel;
 }
