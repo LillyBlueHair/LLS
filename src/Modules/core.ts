@@ -16,12 +16,12 @@ import {
 // Maybe can consolidate things like hypnosis/suffocation basic state handling too..
 export class CoreModule extends BaseModule {
 	get publicSettings(): IPublicSettingsModel {
-		var settings = new PublicSettingsModel();
+		let settings = new PublicSettingsModel();
 		for (const m of modules()) {
-			var moduleSettings = m.settings ?? <BaseSettingsModel>{ enabled: false };
-			var moduleSettingStorage = m.settingsStorage ?? "";
+			let moduleSettings = m.settings ?? <BaseSettingsModel>{ enabled: false };
+			let moduleSettingStorage = m.settingsStorage ?? "";
 			if (Object.hasOwn(settings, moduleSettingStorage)) {
-				var publicModuleSetting = (<any>settings)[moduleSettingStorage];
+				let publicModuleSetting = (<any>settings)[moduleSettingStorage];
 				for (const k of Object.keys(moduleSettings)) {
 					if (Object.hasOwn(publicModuleSetting, k)) publicModuleSetting[k] = (<any>moduleSettings)[k];
 				}
@@ -111,8 +111,8 @@ export class CoreModule extends BaseModule {
 			!!data.Dictionary &&
 			!!data.Dictionary[0]
 		) {
-			var C = getChatroomCharacter(data.Sender) as OtherCharacter;
-			var msg = (<LLSMessageDictionaryEntry>data.Dictionary[0]).message;
+			let C = getChatroomCharacter(data.Sender) as OtherCharacter;
+			let msg = (<LLSMessageDictionaryEntry>data.Dictionary[0]).message;
 			switch (msg.type) {
 				case "init":
 					this.Init(C, msg);

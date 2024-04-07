@@ -9,10 +9,17 @@ export interface ArtifactSettingsModel extends ArtifactPublicSettingsModel {
     gagCollarEnabled: boolean;
     gagCollar: CraftModel;
     gagCollarTrigger: string;
+    gagCollarColor: string;
 
     leashCollarEnabled: boolean;
     leashCollar: CraftModel;
     leashCollarTrigger: string;
+    leashCollarColor: string;
+
+    chastityPiercingsEnabled: boolean;
+    clitChastityPiercing: CraftModel;
+    //nippleChastityPiercing: CraftModel;
+    chastityPiercingTrigger: string;
 }
 
 export interface ArtifactPublicSettingsModel extends BaseSettingsModel {

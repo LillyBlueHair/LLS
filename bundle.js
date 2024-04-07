@@ -156,7 +156,7 @@ var LLS = (function (exports) {
 	    ServerSend("ChatRoomChat", packet);
 	}
 	function sendLocal(msg, time) {
-	    var bgColor = Player.ChatSettings.ColorTheme.indexOf("Light") > -1 ? "#f2feff" : "#1c2829";
+	    let bgColor = Player.ChatSettings.ColorTheme.indexOf("Light") > -1 ? "#f2feff" : "#1c2829";
 	    let text = `<div style='background-color:${bgColor};'>${msg}</div>`;
 	    ChatRoomSendLocal(text);
 	}
@@ -284,8 +284,8 @@ var LLS = (function (exports) {
 	}
 	function onWhisper(priority, module, callback) {
 	    hookFunction("ChatRoomMessage", priority, (args, next) => {
-	        var data = args[0];
-	        var sender = getChatroomCharacter(data.Sender);
+	        let data = args[0];
+	        let sender = getChatroomCharacter(data.Sender);
 	        if (data.Type == "Whisper")
 	            if (callback(data, sender, data.Content, data.Dictionary) == "skipBCX") {
 	                //EWW, but it works
@@ -299,8 +299,8 @@ var LLS = (function (exports) {
 	        hookFunction("ChatRoomMessage", priority, (args, next) => {
 	            if (afterOtherFunctions)
 	                next(args);
-	            var data = args[0];
-	            var sender = getChatroomCharacter(data.Sender);
+	            let data = args[0];
+	            let sender = getChatroomCharacter(data.Sender);
 	            if (data.Type == "Chat" || data.Type == "Whisper")
 	                callback(data, sender, data.Content, data.Dictionary);
 	            if (!afterOtherFunctions)
@@ -311,10 +311,12 @@ var LLS = (function (exports) {
 	        hookFunction("ChatRoomMessage", priority, (args, next) => {
 	            if (afterOtherFunctions)
 	                next(args);
-	            var data = args[0];
-	            var sender = getChatroomCharacter(data.Sender);
-	            var ungarbled = data.Content;
-	            data.Content = callOriginal("SpeechGarble", [sender, ungarbled]);
+	            let data = args[0];
+	            let sender = getChatroomCharacter(data.Sender);
+	            let ungarbled = data.Content;
+	            if (sender && sender.Appearance) {
+	                data.Content = callOriginal("SpeechGarble", [sender, ungarbled]);
+	            }
 	            if (data.Type == "Chat" || data.Type == "Whisper")
 	                callback(data, sender, data.Content, data.Dictionary);
 	            data.Content = ungarbled;
@@ -325,8 +327,8 @@ var LLS = (function (exports) {
 	}
 	function onAction(priority, module, callback) {
 	    hookFunction("ChatRoomMessage", priority, (args, next) => {
-	        var data = args[0];
-	        var sender = getChatroomCharacter(data.Sender);
+	        let data = args[0];
+	        let sender = getChatroomCharacter(data.Sender);
 	        if (data.Type == "Action" || data.Type == "Emote") {
 	            callback(data, sender, data.Content, data.Dictionary);
 	        }
@@ -335,8 +337,8 @@ var LLS = (function (exports) {
 	}
 	function onActivity(priority, module, callback) {
 	    hookFunction("ChatRoomMessage", priority, (args, next) => {
-	        var data = args[0];
-	        var sender = getChatroomCharacter(data.Sender);
+	        let data = args[0];
+	        let sender = getChatroomCharacter(data.Sender);
 	        if (data.Type == "Activity") {
 	            callback(data, sender, data.Content, data.Dictionary);
 	        }
@@ -345,8 +347,8 @@ var LLS = (function (exports) {
 	}
 	function onSentMessage(priority, module, callback) {
 	    hookFunction("ServerSend", priority, (args, next) => {
-	        var data = args[1];
-	        var sender = getChatroomCharacter(data.Sender);
+	        let data = args[1];
+	        let sender = getChatroomCharacter(data.Sender);
 	        if (args[0] === "ChatRoomChat") {
 	            if (!data.Content.startsWith("("))
 	                callback(data, sender, data.Content, data.Dictionary);
@@ -461,8 +463,8 @@ var LLS = (function (exports) {
 	    return praseMatch.test(oocParsed);
 	}
 	function excludeParentheticalContent(msg) {
-	    var result = "";
-	    var Par = false;
+	    let result = "";
+	    let Par = false;
 	    if (msg == null)
 	        msg = "";
 	    for (let i = 0; i < msg.length; i++) {
@@ -699,7 +701,7 @@ var LLS = (function (exports) {
 	        }));
 	    }
 	    Run() {
-	        var prev = MainCanvas.textAlign;
+	        let prev = MainCanvas.textAlign;
 	        MainCanvas.textAlign = "left";
 	        DrawText("- LLS " + this.name + " -", GuiSubscreen.START_X, GuiSubscreen.START_Y - GuiSubscreen.Y_MOD, "Black", "#D7F6E9");
 	        DrawButton(1815, 75, 90, 90, "", "White", "Icons/Exit.png", "LLS main menu");
@@ -719,9 +721,9 @@ var LLS = (function (exports) {
 	                case "checkbox":
 	                    this.DrawCheckbox(item.label, item.description, item.setting(), ix, item.disabled);
 	                    break;
-	                case "text":
+	                case "text": //runs "number"
 	                case "number":
-	                    this.ElementPosition(item.id, item.label, item.description, ix, item.disabled);
+	                    this.ElementPosition(item.id, item.label, item.description, ix, item.disabled, item.type);
 	                    break;
 	                case "label":
 	                    this.DrawLabel(item.label, item.description, ix);
@@ -765,11 +767,11 @@ var LLS = (function (exports) {
 	                    break;
 	                case "craftselect":
 	                    if (MouseIn(this.getXPos(ix) + 464, this.getYPos(ix) - 32, 200, 64) && !item.disabled) {
-	                        var collar = InventoryGet(Player, item.slot);
-	                        if (!collar || !collar.Craft)
+	                        let craft = InventoryGet(Player, item.slot);
+	                        if (!craft || !craft.Craft)
 	                            break;
-	                        var name = collar.Craft.Name;
-	                        var creator = collar.Craft.MemberNumber;
+	                        let name = craft.Craft.Name;
+	                        let creator = craft.Craft.MemberNumber;
 	                        item.setSetting({ name: name, creator: creator });
 	                    }
 	                    else if (MouseIn(this.getXPos(ix) + 464, this.getYPos(ix) + 40, 200, 64) && !item.disabled) {
@@ -814,24 +816,24 @@ var LLS = (function (exports) {
 	        DrawTooltip(300, 850, 1400, text, "left");
 	    }
 	    DrawCheckbox(label, description, value, order, disabled = false) {
-	        var isHovering = MouseIn(this.getXPos(order), this.getYPos(order) - 32, 600, 64);
+	        let isHovering = MouseIn(this.getXPos(order), this.getYPos(order) - 32, 600, 64);
 	        DrawTextFit(label, this.getXPos(order), this.getYPos(order), 600, isHovering ? "Red" : "Black", "Gray");
 	        DrawCheckbox(this.getXPos(order) + 600, this.getYPos(order) - 32, 64, 64, "", value !== null && value !== void 0 ? value : false, disabled);
 	        if (isHovering)
 	            this.Tooltip(description);
 	    }
 	    DrawColorPicker(id, name, description, setting, order, disabled = false) {
-	        var isHovering = MouseIn(this.getXPos(order), this.getYPos(order) - 32, 600, 64);
+	        let isHovering = MouseIn(this.getXPos(order), this.getYPos(order) - 32, 600, 64);
 	        //Label
 	        DrawTextFit(name, this.getXPos(order), this.getYPos(order), 300, isHovering ? "Red" : "Black", "Gray");
 	        //Color Textfield
 	        ElementPosition(id, this.getXPos(order) + 500, this.getYPos(order), 200);
-	        var color = "";
+	        let color = "";
 	        if (CommonIsColor(ElementValue(id)))
 	            color = ElementValue(id);
 	        else
 	            color = setting;
-	        var element = document.getElementById(id);
+	        let element = document.getElementById(id);
 	        if (!element)
 	            return;
 	        element.style.color = color;
@@ -863,27 +865,30 @@ var LLS = (function (exports) {
 	        DrawText("Update " + name + ":", this.getXPos(order), this.getYPos(order), disabled ? "Gray" : "Black", "Gray");
 	        MainCanvas.textAlign = "center";
 	        DrawButton(this.getXPos(order) + 464, this.getYPos(order) - 32, 200, 64, "Update", disabled ? "#CCCCCC" : "White", undefined, "", disabled);
-	        if (MouseIn(this.getXPos(order) + 464, this.getYPos(order) - 32, 600, 64))
+	        if (MouseIn(this.getXPos(order), this.getYPos(order) - 32, 600, 64))
 	            this.Tooltip("Sets the " + name + " to the one currently worn");
 	        DrawButton(this.getXPos(order) + 464, this.getYPos(order) + 40, 200, 64, "Clear", disabled ? "#CCCCCC" : "White", undefined, "", disabled);
-	        if (MouseIn(this.getXPos(order) + 464, this.getYPos(order) + 40, 600, 64))
+	        if (MouseIn(this.getXPos(order), this.getYPos(order) + 40, 600, 64))
 	            this.Tooltip("Set " + name + " to default");
 	        MainCanvas.textAlign = "left";
 	        if (!!setting) {
-	            DrawText("Current Name: " + setting.name, this.getXPos(order), this.getYPos(order) + 60, "Gray", "Gray");
+	            DrawText("Current Name: " + setting.name, this.getXPos(order), this.getYPos(order) + 50, "Gray", "Gray");
 	            if (!!setting.creator && setting.creator > 0)
-	                DrawText("Current Crafter: " + setting.creator, this.getXPos(order), this.getYPos(order) + 110, "Gray", "Gray");
+	                DrawText("Current Crafter: " + setting.creator, this.getXPos(order), this.getYPos(order) + 100, "Gray", "Gray");
 	        }
 	        MainCanvas.textAlign = prev;
 	    }
 	    ElementHide(elementId) {
 	        ElementPosition(elementId, -999, -999, 1, 1);
 	    }
-	    ElementPosition(elementId, label, description, order, disabled = false) {
+	    ElementPosition(elementId, label, description, order, disabled = false, type = "") {
 	        var _a;
-	        var isHovering = MouseIn(this.getXPos(order), this.getYPos(order) - 32, 600, 64);
+	        let isHovering = MouseIn(this.getXPos(order), this.getYPos(order) - 32, 600, 64);
 	        DrawTextFit(label, this.getXPos(order), this.getYPos(order), 600, isHovering ? "Red" : "Black", "Gray");
-	        ElementPosition(elementId, this.getXPos(order) + 750, this.getYPos(order), 300);
+	        if (type = "text")
+	            ElementPosition(elementId, this.getXPos(order) + 540, this.getYPos(order), 300);
+	        else
+	            ElementPosition(elementId, this.getXPos(order) + 740, this.getYPos(order), 300);
 	        if (disabled)
 	            ElementSetAttribute(elementId, "disabled", "true");
 	        else {
@@ -893,7 +898,7 @@ var LLS = (function (exports) {
 	            this.Tooltip(description);
 	    }
 	    DrawLabel(name, description, order) {
-	        var isHovering = MouseIn(this.getXPos(order), this.getYPos(order) - 32, 600, 64);
+	        let isHovering = MouseIn(this.getXPos(order), this.getYPos(order) - 32, 600, 64);
 	        DrawTextFit(name, this.getXPos(order), this.getYPos(order), 600, isHovering ? "Red" : "Black", "Gray");
 	        if (isHovering)
 	            this.Tooltip(description);
@@ -1008,7 +1013,7 @@ var LLS = (function (exports) {
 	        super.Load();
 	    }
 	    Run() {
-	        var prev = MainCanvas.textAlign;
+	        let prev = MainCanvas.textAlign;
 	        MainCanvas.textAlign = "left";
 	        DrawText(`- Lillys Little Scripts ${LLS_VERSION} -`, GuiSubscreen.START_X, GuiSubscreen.START_Y - GuiSubscreen.Y_MOD, "Black", "#D7F6E9");
 	        DrawButton(1815, 75, 90, 90, "", "White", "Icons/Exit.png");
@@ -1188,12 +1193,12 @@ var LLS = (function (exports) {
 	class CoreModule extends BaseModule {
 	    get publicSettings() {
 	        var _a, _b;
-	        var settings = new PublicSettingsModel();
+	        let settings = new PublicSettingsModel();
 	        for (const m of modules()) {
-	            var moduleSettings = (_a = m.settings) !== null && _a !== void 0 ? _a : { enabled: false };
-	            var moduleSettingStorage = (_b = m.settingsStorage) !== null && _b !== void 0 ? _b : "";
+	            let moduleSettings = (_a = m.settings) !== null && _a !== void 0 ? _a : { enabled: false };
+	            let moduleSettingStorage = (_b = m.settingsStorage) !== null && _b !== void 0 ? _b : "";
 	            if (Object.hasOwn(settings, moduleSettingStorage)) {
-	                var publicModuleSetting = settings[moduleSettingStorage];
+	                let publicModuleSetting = settings[moduleSettingStorage];
 	                for (const k of Object.keys(moduleSettings)) {
 	                    if (Object.hasOwn(publicModuleSetting, k))
 	                        publicModuleSetting[k] = moduleSettings[k];
@@ -1262,8 +1267,8 @@ var LLS = (function (exports) {
 	            data.Content == "LLSMsg" &&
 	            !!data.Dictionary &&
 	            !!data.Dictionary[0]) {
-	            var C = getChatroomCharacter(data.Sender);
-	            var msg = data.Dictionary[0].message;
+	            let C = getChatroomCharacter(data.Sender);
+	            let msg = data.Dictionary[0].message;
 	            switch (msg.type) {
 	                case "init":
 	                    this.Init(C, msg);
@@ -1418,8 +1423,8 @@ var LLS = (function (exports) {
 	        return getModule("MiscModule");
 	    }
 	    get orderedCommands() {
-	        var helpCommand = this.getSubcommand("help");
-	        var sorted = this.llsCommands.filter((c) => c.Tag != "help").sort((a, b) => a.Tag.localeCompare(b.Tag));
+	        let helpCommand = this.getSubcommand("help");
+	        let sorted = this.llsCommands.filter((c) => c.Tag != "help").sort((a, b) => a.Tag.localeCompare(b.Tag));
 	        return [helpCommand, ...sorted];
 	    }
 	    get subCommands() {
@@ -1449,8 +1454,8 @@ var LLS = (function (exports) {
 	                        this.getSubcommand("help").Action("", msg, []);
 	                    }
 	                    else {
-	                        var command = this.getSubcommand(parsed[0]);
-	                        var subArgs = parsed.slice(1);
+	                        let command = this.getSubcommand(parsed[0]);
+	                        let subArgs = parsed.slice(1);
 	                        command === null || command === void 0 ? void 0 : command.Action(subArgs.join(" "), msg, subArgs);
 	                    }
 	                },
@@ -1860,11 +1865,23 @@ var LLS = (function (exports) {
 	                {
 	                    type: "text",
 	                    id: "gagCollar_trigger",
-	                    label: "Trigger:",
+	                    label: "Gag Collar Trigger:",
 	                    description: "Sets the trigger word/sentence for the gag collar.",
 	                    setting: () => { var _a; return (_a = this.settings.gagCollarTrigger) !== null && _a !== void 0 ? _a : ""; },
 	                    setSetting: (val) => (this.settings.gagCollarTrigger = val),
 	                    disabled: !this.settings.gagCollarEnabled,
+	                },
+	                {
+	                    type: "colorpicker",
+	                    id: "gagCollar_color",
+	                    label: "Gag Collar Color:",
+	                    description: "Sets the color of the gag on the gag collar.",
+	                    setting: () => { var _a; return (_a = this.settings.gagCollarColor) !== null && _a !== void 0 ? _a : "#4FD5F7"; },
+	                    setSetting: (val) => (this.settings.gagCollarColor = val),
+	                    disabled: !this.settings.gagCollarEnabled,
+	                },
+	                {
+	                    type: "null"
 	                },
 	                {
 	                    type: "craftselect",
@@ -1889,10 +1906,19 @@ var LLS = (function (exports) {
 	                {
 	                    type: "text",
 	                    id: "leashCollar_trigger",
-	                    label: "Trigger:",
+	                    label: "Leash Collar Trigger:",
 	                    description: "Sets the trigger word/sentence for the leash collar.",
 	                    setting: () => { var _a; return (_a = this.settings.leashCollarTrigger) !== null && _a !== void 0 ? _a : ""; },
 	                    setSetting: (val) => (this.settings.leashCollarTrigger = val),
+	                    disabled: !this.settings.leashCollarEnabled,
+	                },
+	                {
+	                    type: "colorpicker",
+	                    id: "leashCollar_color",
+	                    label: "Leash Collar Color:",
+	                    description: "Sets the color of the leash on the leash collar.",
+	                    setting: () => { var _a; return (_a = this.settings.leashCollarColor) !== null && _a !== void 0 ? _a : "#333333"; },
+	                    setSetting: (val) => (this.settings.leashCollarColor = val),
 	                    disabled: !this.settings.leashCollarEnabled,
 	                },
 	                {
@@ -1908,6 +1934,49 @@ var LLS = (function (exports) {
 	                {
 	                    type: "null"
 	                },
+	            ], [
+	                {
+	                    type: "checkbox",
+	                    label: "Chastity Piercings:",
+	                    description: "Enables chastity piercings features.",
+	                    setting: () => { var _a; return (_a = this.settings.chastityPiercingsEnabled) !== null && _a !== void 0 ? _a : false; },
+	                    setSetting: (val) => (this.settings.chastityPiercingsEnabled = val),
+	                },
+	                {
+	                    type: "text",
+	                    id: "chastityPiercing_trigger",
+	                    label: "Chastity Piercing Trigger:",
+	                    description: "Sets the trigger word/sentence for the chastity piercings.",
+	                    setting: () => { var _a; return (_a = this.settings.chastityPiercingTrigger) !== null && _a !== void 0 ? _a : ""; },
+	                    setSetting: (val) => (this.settings.chastityPiercingTrigger = val),
+	                    disabled: !this.settings.chastityPiercingsEnabled,
+	                },
+	                {
+	                    type: "craftselect",
+	                    id: "clitChastityPiercing",
+	                    label: "Clit Chastity Piercing",
+	                    slot: "ItemVulvaPiercings",
+	                    description: "",
+	                    setting: () => this.settings.clitChastityPiercing,
+	                    setSetting: (val) => (this.settings.clitChastityPiercing = val),
+	                    disabled: !this.settings.chastityPiercingsEnabled,
+	                },
+	                {
+	                    type: "null"
+	                },
+	                /*<Setting>{
+	                    type: "craftselect",
+	                    id: "nippleChastityPiercing",
+	                    label: "Nipple Chastity Piercing",
+	                    slot: "ItemNipplesPiercings",
+	                    description: "",
+	                    setting: () => this.settings.nippleChastityPiercing,
+	                    setSetting: (val) => (this.settings.nippleChastityPiercing = val),
+	                    disabled: !this.settings.chastityPiercingsEnabled,
+	                },
+	                <Setting>{
+	                    type: "null"
+	                }*/
 	            ],
 	        ];
 	    }
@@ -1975,9 +2044,15 @@ var LLS = (function (exports) {
 	            gagCollarEnabled: false,
 	            gagCollar: { name: "", creator: 0 },
 	            gagCollarTrigger: "",
+	            gagCollarColor: "#4FD5F7",
 	            leashCollarEnabled: false,
 	            leashCollar: { name: "", creator: 0 },
 	            leashCollarTrigger: "",
+	            leashCollarColor: "#333333",
+	            chastityPiercingsEnabled: false,
+	            clitChastityPiercing: { name: "", creator: 0 },
+	            nippleChastityPiercing: { name: "", creator: 0 },
+	            chastityPiercingTrigger: "",
 	        };
 	    }
 	    get settingsScreen() {
@@ -2000,9 +2075,7 @@ var LLS = (function (exports) {
 	                }
 	            }
 	            if (artifactSettings.gagCollarEnabled && this.wearingGagCollar(Player)) {
-	                console.log("Gag collar enabled");
 	                if (artifactSettings.gagCollarTrigger.trim() != "" && isPhraseInString(msg.toLowerCase(), artifactSettings.gagCollarTrigger.toLowerCase(), false)) {
-	                    console.log("Gag collar trigger found");
 	                    this.toggleGagCollar(Player);
 	                }
 	            }
@@ -2010,6 +2083,14 @@ var LLS = (function (exports) {
 	                if (artifactSettings.leashCollarTrigger.trim() != "" && isPhraseInString(msg.toLowerCase(), artifactSettings.leashCollarTrigger.toLowerCase(), false)) {
 	                    this.toggleLeashCollar(Player);
 	                }
+	            }
+	            if (artifactSettings.chastityPiercingsEnabled && artifactSettings.chastityPiercingTrigger.trim() != "" && isPhraseInString(msg.toLowerCase(), artifactSettings.chastityPiercingTrigger.toLowerCase(), false)) {
+	                if (this.wearingClitChastityPiercing(Player)) {
+	                    this.toggleClitChastityPiercing(Player);
+	                }
+	                /*if (this.wearingNippleChastityPiercing(Player)) {
+	                    this.toggleNippleChastityPiercing(Player);
+	                }*/
 	            }
 	            return;
 	        });
@@ -2031,18 +2112,77 @@ var LLS = (function (exports) {
 	            return;
 	        });
 	    }
+	    // Chastity Piercings
+	    wearingClitChastityPiercing(C) {
+	        var _a, _b, _c, _d;
+	        let piercing = InventoryGet(C, "ItemVulvaPiercings");
+	        if (!piercing)
+	            return false;
+	        let piercingName = (_b = (_a = piercing === null || piercing === void 0 ? void 0 : piercing.Craft) === null || _a === void 0 ? void 0 : _a.Name) !== null && _b !== void 0 ? _b : "";
+	        let piercingCreator = (_d = (_c = piercing === null || piercing === void 0 ? void 0 : piercing.Craft) === null || _c === void 0 ? void 0 : _c.MemberNumber) !== null && _d !== void 0 ? _d : -1;
+	        return piercingName == this.settings.clitChastityPiercing.name && piercingCreator == this.settings.clitChastityPiercing.creator;
+	    }
+	    toggleClitChastityPiercing(C) {
+	        let bra = InventoryGet(C, "ItemPelvis");
+	        if (bra) {
+	            this.deactivateClitChastityPiercing(C);
+	        }
+	        else {
+	            this.activateClitChastityPiercing(C);
+	        }
+	    }
+	    activateClitChastityPiercing(C) {
+	        InventoryWear(C, "PolishedChastityBelt", "ItemPelvis", "Default");
+	        lockItem(C, InventoryGet(C, "ItemPelvis"), "PasswordPadlock");
+	        sendAction("Chastity belt activate - TODO");
+	        ChatRoomCharacterUpdate(C);
+	    }
+	    deactivateClitChastityPiercing(C) {
+	        InventoryRemove(C, "ItemPelvis");
+	        sendAction("Chastity belt deactivate - TODO");
+	        ChatRoomCharacterUpdate(C);
+	    }
+	    /*wearingNippleChastityPiercing(C: OtherCharacter | PlayerCharacter): boolean {
+	        let piercing = InventoryGet(C, "ItemNipplesPiercings");
+	        if (!piercing) return false;
+	        let piercingName = piercing?.Craft?.Name ?? "";
+	        let piercingCreator = piercing?.Craft?.MemberNumber ?? -1;
+	        return piercingName == this.settings.nippleChastityPiercing.name && piercingCreator == this.settings.nippleChastityPiercing.creator;
+	    }
+
+	    toggleNippleChastityPiercing(C: OtherCharacter | PlayerCharacter): void {
+	        let belt = InventoryGet(C, "ItemBreast");
+	        if (belt){
+	            this.deactivateNippleChastityPiercing(C);
+	        }else{
+	            this.activateNippleChastityPiercing(C);
+	        }
+	    }
+
+	    activateNippleChastityPiercing(C: OtherCharacter | PlayerCharacter): void {
+	        InventoryWear(C, "PolishedChastityBra", "ItemBreast", "Default");
+	        lockItem(C, InventoryGet(C, "ItemBreast"), "PasswordPadlock");
+	        sendAction("Chastity bra activate - TODO")
+	        ChatRoomCharacterUpdate(C);
+	    }
+
+	    deactivateNippleChastityPiercing(C: OtherCharacter | PlayerCharacter): void {
+	        InventoryRemove(C, "ItemBreast");
+	        sendAction("Chastity bra deactivate - TODO");
+	        ChatRoomCharacterUpdate(C);
+	    }*/
 	    // Leash Collar
 	    wearingLeashCollar(C) {
 	        var _a, _b, _c, _d;
-	        var collar = InventoryGet(C, "ItemNeck");
+	        let collar = InventoryGet(C, "ItemNeck");
 	        if (!collar)
 	            return false;
-	        var collarName = (_b = (_a = collar === null || collar === void 0 ? void 0 : collar.Craft) === null || _a === void 0 ? void 0 : _a.Name) !== null && _b !== void 0 ? _b : "";
-	        var collarCreator = (_d = (_c = collar === null || collar === void 0 ? void 0 : collar.Craft) === null || _c === void 0 ? void 0 : _c.MemberNumber) !== null && _d !== void 0 ? _d : -1;
+	        let collarName = (_b = (_a = collar === null || collar === void 0 ? void 0 : collar.Craft) === null || _a === void 0 ? void 0 : _a.Name) !== null && _b !== void 0 ? _b : "";
+	        let collarCreator = (_d = (_c = collar === null || collar === void 0 ? void 0 : collar.Craft) === null || _c === void 0 ? void 0 : _c.MemberNumber) !== null && _d !== void 0 ? _d : -1;
 	        return collarName == this.settings.leashCollar.name && collarCreator == this.settings.leashCollar.creator;
 	    }
 	    toggleLeashCollar(C) {
-	        var leash = InventoryGet(C, "ItemNeckRestraints");
+	        let leash = InventoryGet(C, "ItemNeckRestraints");
 	        if (leash) {
 	            this.deactivateLeashCollar(C);
 	        }
@@ -2051,22 +2191,27 @@ var LLS = (function (exports) {
 	        }
 	    }
 	    activateLeashCollar(C) {
-	        InventoryWear(C, "CollarLeash", "ItemNeckRestraints", "#333333");
+	        let color = this.settings.leashCollarColor;
+	        if (!color.startsWith("#"))
+	            color = "#" + color;
+	        InventoryWear(C, "CollarLeash", "ItemNeckRestraints", color);
+	        lockItem(C, InventoryGet(C, "ItemNeckRestraints"), "PasswordPadlock");
+	        sendAction("A leash extends from %NAME%'s collar, ready to be used.");
 	        ChatRoomCharacterUpdate(C);
 	    }
 	    deactivateLeashCollar(C) {
 	        InventoryRemove(C, "ItemNeckRestraints");
+	        sendAction("The leash retracts back into %NAME%'s collar.");
 	        ChatRoomCharacterUpdate(C);
 	    }
 	    // Gag collar
 	    wearingGagCollar(C) {
 	        var _a, _b, _c, _d;
-	        var collar = InventoryGet(C, "ItemNeck");
-	        console.log(collar);
+	        let collar = InventoryGet(C, "ItemNeck");
 	        if (!collar)
 	            return false;
-	        var collarName = (_b = (_a = collar === null || collar === void 0 ? void 0 : collar.Craft) === null || _a === void 0 ? void 0 : _a.Name) !== null && _b !== void 0 ? _b : "";
-	        var collarCreator = (_d = (_c = collar === null || collar === void 0 ? void 0 : collar.Craft) === null || _c === void 0 ? void 0 : _c.MemberNumber) !== null && _d !== void 0 ? _d : -1;
+	        let collarName = (_b = (_a = collar === null || collar === void 0 ? void 0 : collar.Craft) === null || _a === void 0 ? void 0 : _a.Name) !== null && _b !== void 0 ? _b : "";
+	        let collarCreator = (_d = (_c = collar === null || collar === void 0 ? void 0 : collar.Craft) === null || _c === void 0 ? void 0 : _c.MemberNumber) !== null && _d !== void 0 ? _d : -1;
 	        return collarName == this.settings.gagCollar.name && collarCreator == this.settings.gagCollar.creator;
 	    }
 	    toggleGagCollar(C) {
@@ -2078,14 +2223,20 @@ var LLS = (function (exports) {
 	        }
 	    }
 	    activateGagCollar(C) {
-	        InventoryWear(C, "BallGag", "ItemMouth2", "#4FD5F7");
+	        let color = this.settings.gagCollarColor;
+	        if (!color.startsWith("#"))
+	            color = "#" + color;
+	        InventoryWear(C, "BallGag", "ItemMouth2", color);
 	        let gag = InventoryGet(C, "ItemMouth2");
 	        if (gag && gag.Property && gag.Property.TypeRecord)
 	            gag.Property.TypeRecord.typed = 2;
+	        lockItem(C, InventoryGet(C, "ItemMouth2"), "PasswordPadlock");
+	        sendAction("A gag extends from %NAME%'s collar, spreading %POSSESSIVE% lips and muffling %POSSESSIVE% words.");
 	        ChatRoomCharacterUpdate(C);
 	    }
 	    deactivateGagCollar(C) {
 	        InventoryRemove(C, "ItemMouth2");
+	        sendAction("The gag retracts back into %NAME%'s collar.");
 	        ChatRoomCharacterUpdate(C);
 	    }
 	    //Cosplay Ears + Tail
@@ -2100,8 +2251,8 @@ var LLS = (function (exports) {
 	            return ears.Asset.Name != "HarnessCatMask";
 	        }
 	        else {
-	            var collarName = (_e = (_d = (_c = ears.Craft) === null || _c === void 0 ? void 0 : _c.Name) !== null && _d !== void 0 ? _d : ears === null || ears === void 0 ? void 0 : ears.Asset.Name) !== null && _e !== void 0 ? _e : "";
-	            var collarCreator = (_g = (_f = ears === null || ears === void 0 ? void 0 : ears.Craft) === null || _f === void 0 ? void 0 : _f.MemberNumber) !== null && _g !== void 0 ? _g : -1;
+	            let collarName = (_e = (_d = (_c = ears.Craft) === null || _c === void 0 ? void 0 : _c.Name) !== null && _d !== void 0 ? _d : ears === null || ears === void 0 ? void 0 : ears.Asset.Name) !== null && _e !== void 0 ? _e : "";
+	            let collarCreator = (_g = (_f = ears === null || ears === void 0 ? void 0 : ears.Craft) === null || _f === void 0 ? void 0 : _f.MemberNumber) !== null && _g !== void 0 ? _g : -1;
 	            return collarName == earSetting.name && collarCreator == earSetting.creator;
 	        }
 	    }
@@ -2139,9 +2290,9 @@ var LLS = (function (exports) {
 	        return;
 	    }
 	    wearingCatSpeechMask(C) {
-	        var gag1 = InventoryGet(C, "ItemMouth");
-	        var gag2 = InventoryGet(C, "ItemMouth2");
-	        var gag3 = InventoryGet(C, "ItemMouth3");
+	        let gag1 = InventoryGet(C, "ItemMouth");
+	        let gag2 = InventoryGet(C, "ItemMouth2");
+	        let gag3 = InventoryGet(C, "ItemMouth3");
 	        if (gag1 && (gag1.Asset.Name == "KittyHarnessPanelGag" || gag1.Asset.Name == "KittyGag" || gag1.Asset.Name == "KittyMuzzleGag"))
 	            return true;
 	        else if (gag2 && (gag2.Asset.Name == "KittyHarnessPanelGag" || gag2.Asset.Name == "KittyGag" || gag2.Asset.Name == "KittyMuzzleGag"))
@@ -2153,7 +2304,7 @@ var LLS = (function (exports) {
 	    // Petsuit Collar
 	    wearingPetsuitCollar(C) {
 	        var _a, _b, _c, _d, _e, _f;
-	        var collar = InventoryGet(C, "ItemNeck");
+	        let collar = InventoryGet(C, "ItemNeck");
 	        let collarSettings = (_a = C.LLS) === null || _a === void 0 ? void 0 : _a.ArtifactModule.petsuitCollarSetting;
 	        if (!collar || !collarSettings || !collarSettings.enabled)
 	            return false;
@@ -2164,8 +2315,8 @@ var LLS = (function (exports) {
 	            return (collar === null || collar === void 0 ? void 0 : collar.Asset.Name) == collarSettings.petsuitCollar.name;
 	        }
 	        else {
-	            var collarName = (_d = (_c = (_b = collar === null || collar === void 0 ? void 0 : collar.Craft) === null || _b === void 0 ? void 0 : _b.Name) !== null && _c !== void 0 ? _c : collar === null || collar === void 0 ? void 0 : collar.Asset.Name) !== null && _d !== void 0 ? _d : "";
-	            var collarCreator = (_f = (_e = collar === null || collar === void 0 ? void 0 : collar.Craft) === null || _e === void 0 ? void 0 : _e.MemberNumber) !== null && _f !== void 0 ? _f : -1;
+	            let collarName = (_d = (_c = (_b = collar === null || collar === void 0 ? void 0 : collar.Craft) === null || _b === void 0 ? void 0 : _b.Name) !== null && _c !== void 0 ? _c : collar === null || collar === void 0 ? void 0 : collar.Asset.Name) !== null && _d !== void 0 ? _d : "";
+	            let collarCreator = (_f = (_e = collar === null || collar === void 0 ? void 0 : collar.Craft) === null || _e === void 0 ? void 0 : _e.MemberNumber) !== null && _f !== void 0 ? _f : -1;
 	            return collarName == collarSettings.petsuitCollar.name && collarCreator == collarSettings.petsuitCollar.creator;
 	        }
 	    }
@@ -2203,7 +2354,7 @@ var LLS = (function (exports) {
 	                typed: 1,
 	            },
 	        });
-	        var suit = InventoryGet(C, "ItemArms");
+	        let suit = InventoryGet(C, "ItemArms");
 	        if (suit && suit.Property && suit.Property.TypeRecord)
 	            suit.Property.TypeRecord.typed = 1;
 	        //if(suit && suit.Property) suit.Property.Hide = ["Bra", "Panties", "ItemNipples","ItemNipplesPiercings", "ItemBreasts", "Socks", "Suit", "SuitLower", "SocksLeft", "SocksRight"];
@@ -2259,7 +2410,7 @@ var LLS = (function (exports) {
 	        if (!member)
 	            return false;
 	        if (this.settings.petsuitCollarSetting.lockOwner == true) {
-	            var collar = InventoryGet(Player, "ItemNeck");
+	            let collar = InventoryGet(Player, "ItemNeck");
 	            if (collar && collar.Property && collar.Property.LockMemberNumber) {
 	                if (collar.Property.LockMemberNumber == member.MemberNumber)
 	                    return true;
@@ -2323,7 +2474,7 @@ var LLS = (function (exports) {
 	        return SETTING_NAME_PREFIX + this.constructor.name;
 	    }
 	    setSubscreen(screen) {
-	        var rootModule = getModule("RemoteUiModule");
+	        let rootModule = getModule("RemoteUiModule");
 	        if (!!rootModule && !!screen)
 	            rootModule.currentSubscreen = screen;
 	        return screen;
@@ -2384,7 +2535,7 @@ var LLS = (function (exports) {
 	            }
 	        });
 	        this.settingsSave();
-	        var rootModule = getModule("RemoteUiModule");
+	        let rootModule = getModule("RemoteUiModule");
 	        if (!!rootModule)
 	            rootModule.currentSubscreen = new RemoteMainMenu(rootModule, this.Character);
 	    }
@@ -2415,7 +2566,7 @@ var LLS = (function (exports) {
 	        return idList;
 	    }
 	    get disabledReason() {
-	        var memberIdIsAllowed = ServerChatRoomGetAllowItem(Player, this.Character);
+	        let memberIdIsAllowed = ServerChatRoomGetAllowItem(Player, this.Character);
 	        if (this.allowedMemberIds.length > 0)
 	            memberIdIsAllowed = this.allowedMemberIds.indexOf(Player.MemberNumber) > -1;
 	        if (!memberIdIsAllowed)
@@ -2428,7 +2579,7 @@ var LLS = (function (exports) {
 	            return "Section is Unavailable";
 	    }
 	    get enabled() {
-	        var memberIdIsAllowed = ServerChatRoomGetAllowItem(Player, this.Character);
+	        let memberIdIsAllowed = ServerChatRoomGetAllowItem(Player, this.Character);
 	        if (this.allowedMemberIds.length > 0)
 	            memberIdIsAllowed = this.allowedMemberIds.indexOf(Player.MemberNumber) > -1;
 	        return this.settings.petsuitCollarSetting.remoteAccess && this.settings.petsuitCollarSetting.enabled && memberIdIsAllowed;
@@ -2561,7 +2712,7 @@ var LLS = (function (exports) {
 	    }
 	    Run() {
 	        var _a, _b;
-	        var prev = MainCanvas.textAlign;
+	        let prev = MainCanvas.textAlign;
 	        MainCanvas.textAlign = "left";
 	        DrawText(`- Lillys Little Scripts ${(_b = (_a = this.Character.LLS) === null || _a === void 0 ? void 0 : _a.Version) !== null && _b !== void 0 ? _b : "?.?.?"} -`, GuiSubscreen.START_X, GuiSubscreen.START_Y - GuiSubscreen.Y_MOD, "Black", "#D7F6E9");
 	        DrawButton(1815, 75, 90, 90, "", "White", "Icons/Exit.png");
@@ -2792,7 +2943,7 @@ var LLS = (function (exports) {
 	        return next(args);
 	    });
 	    hookFunction("ChatRoomSafewordRelease", 1, (args, next) => {
-	        var ret = next(args);
+	        let ret = next(args);
 	        for (const m of modules()) {
 	            m.Safeword();
 	        }

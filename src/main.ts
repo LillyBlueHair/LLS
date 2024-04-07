@@ -129,7 +129,7 @@ function initModules(): boolean {
 	});
 
 	hookFunction("ChatRoomSafewordRelease", 1, (args, next) => {
-		var ret = next(args);
+		let ret = next(args);
 		for (const m of modules()) {
 			m.Safeword();
 		}

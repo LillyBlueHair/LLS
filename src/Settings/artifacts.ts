@@ -74,7 +74,7 @@ export class GuiArtifact extends GuiSubscreen {
                 },
                 <Setting>{
                     type: "checkbox",
-                    label: "Allow Self-Speechtrigger:",
+                    label: "Allow Self-Trigger:",
                     description: "Allows the wearer of the collar to trigger the speech commands.",
                     setting: () => this.settings.petsuitCollarSetting.allowSelfTrigger ?? false,
                     setSetting: (val) => (this.settings.petsuitCollarSetting.allowSelfTrigger = val),
@@ -104,7 +104,7 @@ export class GuiArtifact extends GuiSubscreen {
                     description: "The current collar equipped.",
                     setting: () => this.settings.petsuitCollarSetting.petsuitCollar,
                     setSetting: (val) => (this.settings.petsuitCollarSetting.petsuitCollar = val),
-                    disabled: !this.settings.petsuitCollarSetting.enabled,
+                    disabled: !this.settings.petsuitCollarSetting.enabled || this.settings.petsuitCollarSetting.locked,
                 },
                 <Setting>{
                     type: "null"
@@ -157,11 +157,23 @@ export class GuiArtifact extends GuiSubscreen {
                 <Setting>{
                     type: "text",
                     id: "gagCollar_trigger",
-                    label: "Trigger:",
+                    label: "Gag Collar Trigger:",
                     description: "Sets the trigger word/sentence for the gag collar.",
                     setting: () => this.settings.gagCollarTrigger ?? "",
                     setSetting: (val) => (this.settings.gagCollarTrigger = val),
                     disabled: !this.settings.gagCollarEnabled,
+                },
+                <Setting>{
+                    type: "colorpicker",
+                    id: "gagCollar_color",
+                    label: "Gag Collar Color:",
+                    description: "Sets the color of the gag on the gag collar.",
+                    setting: () => this.settings.gagCollarColor ?? "#4FD5F7",
+                    setSetting: (val) => (this.settings.gagCollarColor = val),
+                    disabled: !this.settings.gagCollarEnabled,
+                },
+                <Setting>{
+                    type: "null"
                 },
                 <Setting>{
                     type: "craftselect",
@@ -186,11 +198,20 @@ export class GuiArtifact extends GuiSubscreen {
                 <Setting>{
                     type: "text",
                     id: "leashCollar_trigger",
-                    label: "Trigger:",
+                    label: "Leash Collar Trigger:",
                     description: "Sets the trigger word/sentence for the leash collar.",
                     setting: () => this.settings.leashCollarTrigger ?? "",
                     setSetting: (val) => (this.settings.leashCollarTrigger = val),
                     disabled: !this.settings.leashCollarEnabled,
+                },
+                <Setting>{
+                    type: "colorpicker",
+                    id: "leashCollar_color",
+                    label: "Leash Collar Color:",
+                    description: "Sets the color of the leash on the leash collar.",
+                    setting: () => this.settings.leashCollarColor ?? "#333333",
+                    setSetting: (val) => (this.settings.leashCollarColor = val),
+                    disabled: !this.settings.leashCollarEnabled,   
                 },
                 <Setting>{
                     type: "craftselect",
@@ -205,6 +226,49 @@ export class GuiArtifact extends GuiSubscreen {
                 <Setting>{
                     type: "null"
                 },
+            ],[
+                <Setting>{
+                    type: "checkbox",
+                    label: "Chastity Piercings:",
+                    description: "Enables chastity piercings features.",
+                    setting: () => this.settings.chastityPiercingsEnabled ?? false,
+                    setSetting: (val) => (this.settings.chastityPiercingsEnabled = val),
+                },
+                <Setting>{
+                    type: "text",
+                    id: "chastityPiercing_trigger",
+                    label: "Chastity Piercing Trigger:",
+                    description: "Sets the trigger word/sentence for the chastity piercings.",
+                    setting: () => this.settings.chastityPiercingTrigger ?? "",
+                    setSetting: (val) => (this.settings.chastityPiercingTrigger = val),
+                    disabled: !this.settings.chastityPiercingsEnabled,
+                },
+                <Setting>{
+                    type: "craftselect",
+                    id: "clitChastityPiercing",
+                    label: "Clit Chastity Piercing",
+                    slot: "ItemVulvaPiercings",
+                    description: "",
+                    setting: () => this.settings.clitChastityPiercing,
+                    setSetting: (val) => (this.settings.clitChastityPiercing = val),
+                    disabled: !this.settings.chastityPiercingsEnabled,
+                },
+                <Setting>{
+                    type: "null"
+                },
+                /*<Setting>{
+                    type: "craftselect",
+                    id: "nippleChastityPiercing",
+                    label: "Nipple Chastity Piercing",
+                    slot: "ItemNipplesPiercings",
+                    description: "",
+                    setting: () => this.settings.nippleChastityPiercing,
+                    setSetting: (val) => (this.settings.nippleChastityPiercing = val),
+                    disabled: !this.settings.chastityPiercingsEnabled,                    
+                },
+                <Setting>{
+                    type: "null"
+                }*/
             ],
         ];
     }

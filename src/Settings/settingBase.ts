@@ -144,7 +144,7 @@ export abstract class GuiSubscreen {
     }
 
     Run() {
-        var prev = MainCanvas.textAlign;
+        let prev = MainCanvas.textAlign;
         MainCanvas.textAlign = "left";
 
         DrawText("- LLS " + this.name + " -", GuiSubscreen.START_X, GuiSubscreen.START_Y - GuiSubscreen.Y_MOD, "Black", "#D7F6E9");
@@ -169,9 +169,9 @@ export abstract class GuiSubscreen {
                 case "checkbox":
                     this.DrawCheckbox(item.label, item.description, item.setting(), ix, item.disabled);
                     break;
-                case "text":
+                case "text": //runs "number"
                 case "number":
-                    this.ElementPosition(item.id, item.label, item.description, ix, item.disabled);
+                    this.ElementPosition(item.id, item.label, item.description, ix, item.disabled, item.type);
                     break;
                 case "label":
                     this.DrawLabel(item.label, item.description, ix);
@@ -215,10 +215,10 @@ export abstract class GuiSubscreen {
                     break;
 				case "craftselect":
 					if (MouseIn(this.getXPos(ix) + 464, this.getYPos(ix) - 32, 200, 64) && !item.disabled) {
-						var collar = InventoryGet(Player, item.slot);
-						if (!collar || !collar.Craft) break;
-						var name = collar.Craft.Name;
-						var creator = collar.Craft.MemberNumber;
+						let craft = InventoryGet(Player, item.slot);
+						if (!craft || !craft.Craft) break;
+						let name = craft.Craft.Name;
+						let creator = craft.Craft.MemberNumber;
 						item.setSetting(<CraftModel>{name: name, creator: creator});
 					}else if (MouseIn(this.getXPos(ix) + 464, this.getYPos(ix) + 40, 200, 64) && !item.disabled) {
 						item.setSetting(<CraftModel>{name: "", creator: 0});
@@ -271,23 +271,23 @@ export abstract class GuiSubscreen {
     }
 
     DrawCheckbox(label: string, description: string, value: boolean, order: number, disabled: boolean = false) {
-        var isHovering = MouseIn(this.getXPos(order), this.getYPos(order) - 32, 600, 64);
+        let isHovering = MouseIn(this.getXPos(order), this.getYPos(order) - 32, 600, 64);
         DrawTextFit(label, this.getXPos(order), this.getYPos(order), 600, isHovering ? "Red" : "Black", "Gray");
         DrawCheckbox(this.getXPos(order) + 600, this.getYPos(order) - 32, 64, 64, "", value ?? false, disabled);
         if (isHovering) this.Tooltip(description);
     }
 
     DrawColorPicker(id: string, name: string, description: string, setting: string, order: number, disabled: boolean = false) {
-        var isHovering = MouseIn(this.getXPos(order), this.getYPos(order) - 32, 600, 64);
+        let isHovering = MouseIn(this.getXPos(order), this.getYPos(order) - 32, 600, 64);
         //Label
         DrawTextFit(name, this.getXPos(order), this.getYPos(order), 300, isHovering ? "Red" : "Black", "Gray");
 
         //Color Textfield
         ElementPosition(id, this.getXPos(order) + 500, this.getYPos(order), 200);
-        var color = "";
+        let color = "";
         if (CommonIsColor(ElementValue(id))) color = ElementValue(id);
         else color = setting;
-        var element = document.getElementById(id);
+        let element = document.getElementById(id);
         if (!element) return;
         element.style.color = color;
         let TextColorHSV = ColorPickerCSSToHSV(color);
@@ -327,7 +327,7 @@ export abstract class GuiSubscreen {
             "",
             disabled
         );
-        if (MouseIn(this.getXPos(order)+464, this.getYPos(order) - 32, 600, 64)) this.Tooltip("Sets the "+name+" to the one currently worn");
+        if (MouseIn(this.getXPos(order), this.getYPos(order) - 32, 600, 64)) this.Tooltip("Sets the "+name+" to the one currently worn");
         DrawButton(
             this.getXPos(order) + 464,
             this.getYPos(order) + 40,
@@ -339,14 +339,14 @@ export abstract class GuiSubscreen {
             "",
             disabled
         );
-        if (MouseIn(this.getXPos(order)+464, this.getYPos(order) + 40, 600, 64)) this.Tooltip("Set "+name+" to default");
+        if (MouseIn(this.getXPos(order), this.getYPos(order) + 40, 600, 64)) this.Tooltip("Set "+name+" to default");
 
         MainCanvas.textAlign = "left";
         if (!!setting) {
             DrawText(
                 "Current Name: " + setting.name,
                 this.getXPos(order),
-                this.getYPos(order) + 60,
+                this.getYPos(order) + 50,
                 "Gray",
                 "Gray"
             );
@@ -354,7 +354,7 @@ export abstract class GuiSubscreen {
                 DrawText(
                     "Current Crafter: " + setting.creator,
                     this.getXPos(order),
-                    this.getYPos(order) + 110,
+                    this.getYPos(order) + 100,
                     "Gray",
                     "Gray"
                 );
@@ -366,10 +366,11 @@ export abstract class GuiSubscreen {
         ElementPosition(elementId, -999, -999, 1, 1);
     }
 
-    ElementPosition(elementId: string, label: string, description: string, order: number, disabled: boolean = false) {
-        var isHovering = MouseIn(this.getXPos(order), this.getYPos(order) - 32, 600, 64);
+    ElementPosition(elementId: string, label: string, description: string, order: number, disabled: boolean = false, type: string = "") {
+        let isHovering = MouseIn(this.getXPos(order), this.getYPos(order) - 32, 600, 64);
         DrawTextFit(label, this.getXPos(order), this.getYPos(order), 600, isHovering ? "Red" : "Black", "Gray");
-        ElementPosition(elementId, this.getXPos(order) + 750, this.getYPos(order), 300);
+        if(type="text") ElementPosition(elementId, this.getXPos(order) + 540, this.getYPos(order), 300);
+        else ElementPosition(elementId, this.getXPos(order) + 740, this.getYPos(order), 300);
         if (disabled) ElementSetAttribute(elementId, "disabled", "true");
         else {
             document.getElementById(elementId)?.removeAttribute("disabled");
@@ -378,7 +379,7 @@ export abstract class GuiSubscreen {
     }
 
     DrawLabel(name: string, description: string, order: number) {
-        var isHovering = MouseIn(this.getXPos(order), this.getYPos(order) - 32, 600, 64);
+        let isHovering = MouseIn(this.getXPos(order), this.getYPos(order) - 32, 600, 64);
         DrawTextFit(name, this.getXPos(order), this.getYPos(order), 600, isHovering ? "Red" : "Black", "Gray");
         if (isHovering) this.Tooltip(description);
     }

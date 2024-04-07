@@ -66,10 +66,17 @@ export class ArtifactModule extends BaseModule {
             gagCollarEnabled: false,
             gagCollar: <CraftModel>{ name: "", creator: 0 },
             gagCollarTrigger: "",
+            gagCollarColor: "#4FD5F7",
 
             leashCollarEnabled: false,
             leashCollar: <CraftModel>{ name: "", creator: 0 },
             leashCollarTrigger: "",
+            leashCollarColor: "#333333",
+
+            chastityPiercingsEnabled: false,
+            clitChastityPiercing: <CraftModel>{ name: "", creator: 0 },
+            nippleChastityPiercing: <CraftModel>{ name: "", creator: 0 },
+            chastityPiercingTrigger: "",
         };
     }
 
@@ -94,9 +101,7 @@ export class ArtifactModule extends BaseModule {
                 }
             }
             if (artifactSettings.gagCollarEnabled && this.wearingGagCollar(Player)) {
-                console.log("Gag collar enabled");
                 if (artifactSettings.gagCollarTrigger.trim() != "" && isPhraseInString(msg.toLowerCase(), artifactSettings.gagCollarTrigger.toLowerCase(), false)) {
-                    console.log("Gag collar trigger found");
                     this.toggleGagCollar(Player);
                 }
             }
@@ -104,6 +109,14 @@ export class ArtifactModule extends BaseModule {
                 if (artifactSettings.leashCollarTrigger.trim() != "" && isPhraseInString(msg.toLowerCase(), artifactSettings.leashCollarTrigger.toLowerCase(), false)) {
                     this.toggleLeashCollar(Player);
                 }
+            }
+            if (artifactSettings.chastityPiercingsEnabled && artifactSettings.chastityPiercingTrigger.trim() != "" && isPhraseInString(msg.toLowerCase(), artifactSettings.chastityPiercingTrigger.toLowerCase(), false)) {
+                if (this.wearingClitChastityPiercing(Player)) {
+                    this.toggleClitChastityPiercing(Player);
+                }
+                /*if (this.wearingNippleChastityPiercing(Player)) {
+                    this.toggleNippleChastityPiercing(Player);
+                }*/
             }
             return;
         });
@@ -128,17 +141,79 @@ export class ArtifactModule extends BaseModule {
         });
     }
 
+    // Chastity Piercings
+    wearingClitChastityPiercing(C: OtherCharacter | PlayerCharacter): boolean {
+        let piercing = InventoryGet(C, "ItemVulvaPiercings");
+        if (!piercing) return false;
+        let piercingName = piercing?.Craft?.Name ?? "";
+        let piercingCreator = piercing?.Craft?.MemberNumber ?? -1;
+        return piercingName == this.settings.clitChastityPiercing.name && piercingCreator == this.settings.clitChastityPiercing.creator;
+
+    }
+
+    toggleClitChastityPiercing(C: OtherCharacter | PlayerCharacter): void {
+        let bra = InventoryGet(C, "ItemPelvis");
+        if (bra) {
+            this.deactivateClitChastityPiercing(C);
+        } else {
+            this.activateClitChastityPiercing(C);
+        }
+    }
+
+    activateClitChastityPiercing(C: OtherCharacter | PlayerCharacter): void {
+        InventoryWear(C, "PolishedChastityBelt", "ItemPelvis", "Default");
+        lockItem(C, InventoryGet(C, "ItemPelvis"), "PasswordPadlock");
+        sendAction("Chastity belt activate - TODO")
+        ChatRoomCharacterUpdate(C);
+    }
+
+    deactivateClitChastityPiercing(C: OtherCharacter | PlayerCharacter): void {
+        InventoryRemove(C, "ItemPelvis");
+        sendAction("Chastity belt deactivate - TODO");
+        ChatRoomCharacterUpdate(C);
+    }
+
+    /*wearingNippleChastityPiercing(C: OtherCharacter | PlayerCharacter): boolean {
+        let piercing = InventoryGet(C, "ItemNipplesPiercings");
+        if (!piercing) return false;
+        let piercingName = piercing?.Craft?.Name ?? "";
+        let piercingCreator = piercing?.Craft?.MemberNumber ?? -1;
+        return piercingName == this.settings.nippleChastityPiercing.name && piercingCreator == this.settings.nippleChastityPiercing.creator;
+    }
+
+    toggleNippleChastityPiercing(C: OtherCharacter | PlayerCharacter): void {
+        let belt = InventoryGet(C, "ItemBreast");
+        if (belt){
+            this.deactivateNippleChastityPiercing(C);
+        }else{
+            this.activateNippleChastityPiercing(C);
+        }
+    }
+
+    activateNippleChastityPiercing(C: OtherCharacter | PlayerCharacter): void {
+        InventoryWear(C, "PolishedChastityBra", "ItemBreast", "Default");
+        lockItem(C, InventoryGet(C, "ItemBreast"), "PasswordPadlock");
+        sendAction("Chastity bra activate - TODO")
+        ChatRoomCharacterUpdate(C);
+    }
+
+    deactivateNippleChastityPiercing(C: OtherCharacter | PlayerCharacter): void {
+        InventoryRemove(C, "ItemBreast");
+        sendAction("Chastity bra deactivate - TODO");
+        ChatRoomCharacterUpdate(C);
+    }*/
+
     // Leash Collar
     wearingLeashCollar(C: OtherCharacter | PlayerCharacter): boolean {
-        var collar = InventoryGet(C, "ItemNeck");
+        let collar = InventoryGet(C, "ItemNeck");
         if (!collar) return false;
-        var collarName = collar?.Craft?.Name ?? "";
-        var collarCreator = collar?.Craft?.MemberNumber ?? -1;
+        let collarName = collar?.Craft?.Name ?? "";
+        let collarCreator = collar?.Craft?.MemberNumber ?? -1;
         return collarName == this.settings.leashCollar.name && collarCreator == this.settings.leashCollar.creator;
     }
 
     toggleLeashCollar(C: OtherCharacter | PlayerCharacter): void {
-        var leash = InventoryGet(C, "ItemNeckRestraints");
+        let leash = InventoryGet(C, "ItemNeckRestraints");
         if (leash) {
             this.deactivateLeashCollar(C);
         } else {
@@ -147,23 +222,27 @@ export class ArtifactModule extends BaseModule {
     }
 
     activateLeashCollar(C: OtherCharacter | PlayerCharacter): void {
-        InventoryWear(C, "CollarLeash", "ItemNeckRestraints", "#333333");
+        let color = this.settings.leashCollarColor;
+        if (!color.startsWith("#")) color = "#" + color;
+        InventoryWear(C, "CollarLeash", "ItemNeckRestraints", color);
+        lockItem(C, InventoryGet(C, "ItemNeckRestraints"), "PasswordPadlock");
+        sendAction("A leash extends from %NAME%'s collar, ready to be used.");
         ChatRoomCharacterUpdate(C);
     }
 
     deactivateLeashCollar(C: OtherCharacter | PlayerCharacter): void {
         InventoryRemove(C, "ItemNeckRestraints");
+        sendAction("The leash retracts back into %NAME%'s collar.");
         ChatRoomCharacterUpdate(C);
     }
 
     // Gag collar
 
     wearingGagCollar(C: OtherCharacter | PlayerCharacter): boolean {
-        var collar = InventoryGet(C, "ItemNeck");
-        console.log(collar);
+        let collar = InventoryGet(C, "ItemNeck");
         if (!collar) return false;
-        var collarName = collar?.Craft?.Name ?? "";
-        var collarCreator = collar?.Craft?.MemberNumber ?? -1;
+        let collarName = collar?.Craft?.Name ?? "";
+        let collarCreator = collar?.Craft?.MemberNumber ?? -1;
         return collarName == this.settings.gagCollar.name && collarCreator == this.settings.gagCollar.creator;
     }
 
@@ -176,14 +255,19 @@ export class ArtifactModule extends BaseModule {
     }
 
     activateGagCollar(C: OtherCharacter | PlayerCharacter): void {
-        InventoryWear(C, "BallGag", "ItemMouth2", "#4FD5F7");
+        let color = this.settings.gagCollarColor;
+        if (!color.startsWith("#")) color = "#" + color;
+        InventoryWear(C, "BallGag", "ItemMouth2", color);
         let gag = InventoryGet(C, "ItemMouth2");
         if (gag && gag.Property && gag.Property.TypeRecord) gag.Property.TypeRecord.typed = 2;
+        lockItem(C, InventoryGet(C, "ItemMouth2"), "PasswordPadlock");
+        sendAction("A gag extends from %NAME%'s collar, spreading %POSSESSIVE% lips and muffling %POSSESSIVE% words.");
         ChatRoomCharacterUpdate(C);
     }
 
     deactivateGagCollar(C: OtherCharacter | PlayerCharacter): void {
         InventoryRemove(C, "ItemMouth2");
+        sendAction("The gag retracts back into %NAME%'s collar.");
         ChatRoomCharacterUpdate(C);
     }
 
@@ -197,8 +281,8 @@ export class ArtifactModule extends BaseModule {
         if (!earSetting.creator) {
             return ears.Asset.Name != "HarnessCatMask";
         } else {
-            var collarName = ears.Craft?.Name ?? ears?.Asset.Name ?? "";
-            var collarCreator = ears?.Craft?.MemberNumber ?? -1;
+            let collarName = ears.Craft?.Name ?? ears?.Asset.Name ?? "";
+            let collarCreator = ears?.Craft?.MemberNumber ?? -1;
             return collarName == earSetting.name && collarCreator == earSetting.creator;
         }
     }
@@ -235,9 +319,9 @@ export class ArtifactModule extends BaseModule {
     }
 
     wearingCatSpeechMask(C: OtherCharacter | PlayerCharacter): boolean {
-        var gag1 = InventoryGet(C, "ItemMouth");
-        var gag2 = InventoryGet(C, "ItemMouth2");
-        var gag3 = InventoryGet(C, "ItemMouth3");
+        let gag1 = InventoryGet(C, "ItemMouth");
+        let gag2 = InventoryGet(C, "ItemMouth2");
+        let gag3 = InventoryGet(C, "ItemMouth3");
         if (gag1 && (gag1.Asset.Name == "KittyHarnessPanelGag" || gag1.Asset.Name == "KittyGag" || gag1.Asset.Name == "KittyMuzzleGag")) return true;
         else if (gag2 && (gag2.Asset.Name == "KittyHarnessPanelGag" || gag2.Asset.Name == "KittyGag" || gag2.Asset.Name == "KittyMuzzleGag")) return true;
         else if (gag3 && (gag3.Asset.Name == "KittyHarnessPanelGag" || gag3.Asset.Name == "KittyGag" || gag3.Asset.Name == "KittyMuzzleGag")) return true;
@@ -247,7 +331,7 @@ export class ArtifactModule extends BaseModule {
     // Petsuit Collar
 
     wearingPetsuitCollar(C: OtherCharacter | PlayerCharacter): boolean {
-        var collar = InventoryGet(C, "ItemNeck");
+        let collar = InventoryGet(C, "ItemNeck");
         let collarSettings = C.LLS?.ArtifactModule.petsuitCollarSetting;
         if (!collar || !collarSettings || !collarSettings.enabled) return false;
 
@@ -257,8 +341,8 @@ export class ArtifactModule extends BaseModule {
         if (!collarSettings.petsuitCollar.creator) {
             return collar?.Asset.Name == collarSettings.petsuitCollar.name;
         } else {
-            var collarName = collar?.Craft?.Name ?? collar?.Asset.Name ?? "";
-            var collarCreator = collar?.Craft?.MemberNumber ?? -1;
+            let collarName = collar?.Craft?.Name ?? collar?.Asset.Name ?? "";
+            let collarCreator = collar?.Craft?.MemberNumber ?? -1;
             return collarName == collarSettings.petsuitCollar.name && collarCreator == collarSettings.petsuitCollar.creator;
         }
     }
@@ -297,7 +381,7 @@ export class ArtifactModule extends BaseModule {
                 typed: 1,
             },
         });
-        var suit = InventoryGet(C, "ItemArms");
+        let suit = InventoryGet(C, "ItemArms");
         if (suit && suit.Property && suit.Property.TypeRecord) suit.Property.TypeRecord.typed = 1;
         //if(suit && suit.Property) suit.Property.Hide = ["Bra", "Panties", "ItemNipples","ItemNipplesPiercings", "ItemBreasts", "Socks", "Suit", "SuitLower", "SocksLeft", "SocksRight"];
 
@@ -359,7 +443,7 @@ export class ArtifactModule extends BaseModule {
         if (!member) return false;
 
         if (this.settings.petsuitCollarSetting.lockOwner == true) {
-            var collar = InventoryGet(Player, "ItemNeck");
+            let collar = InventoryGet(Player, "ItemNeck");
             if (collar && collar.Property && collar.Property.LockMemberNumber) {
                 if (collar.Property.LockMemberNumber == member.MemberNumber) return true;
                 else return false;

@@ -101,7 +101,7 @@ export function sendHiddenMessage(msg: LLSMessageModel) {
 }
 
 export function sendLocal(msg: string, time?: number) {
-    var bgColor = Player.ChatSettings!.ColorTheme!.indexOf("Light") > -1 ? "#f2feff" : "#1c2829";
+    let bgColor = Player.ChatSettings!.ColorTheme!.indexOf("Light") > -1 ? "#f2feff" : "#1c2829";
     let text = `<div style='background-color:${bgColor};'>${msg}</div>`;
     ChatRoomSendLocal(text);
 }
@@ -244,8 +244,8 @@ export function onWhisper(
         "ChatRoomMessage",
         priority,
         (args, next) => {
-            var data = args[0];
-            var sender = getChatroomCharacter(data.Sender);
+            let data = args[0];
+            let sender = getChatroomCharacter(data.Sender);
             if (data.Type == "Whisper")
                 if (callback(data, sender, data.Content, data.Dictionary) == "skipBCX") {
                     //EWW, but it works
@@ -271,8 +271,8 @@ export function onChat(
             (args, next) => {
                 if(afterOtherFunctions)next(args);
                 
-                var data = args[0];
-                var sender = getChatroomCharacter(data.Sender);
+                let data = args[0];
+                let sender = getChatroomCharacter(data.Sender);
                 if (data.Type == "Chat" || data.Type == "Whisper") callback(data, sender, data.Content, data.Dictionary);
                 if(!afterOtherFunctions)next(args);
             },
@@ -284,10 +284,12 @@ export function onChat(
             priority,
             (args, next) => {
                 if(afterOtherFunctions)next(args);
-                var data = args[0];
-                var sender = getChatroomCharacter(data.Sender) as Character;
-                var ungarbled = data.Content;
-                data.Content = callOriginal("SpeechGarble", [sender, ungarbled])
+                let data = args[0];
+                let sender = getChatroomCharacter(data.Sender) as Character;
+                let ungarbled = data.Content;
+                if(sender && sender.Appearance) {
+                    data.Content = callOriginal("SpeechGarble", [sender, ungarbled])
+                }
                 if (data.Type == "Chat" || data.Type == "Whisper") callback(data, sender, data.Content, data.Dictionary);
                 data.Content = ungarbled;
                 if(!afterOtherFunctions)next(args);
@@ -302,8 +304,8 @@ export function onAction(priority: any, module: ModuleCategory, callback: (data:
         "ChatRoomMessage",
         priority,
         (args, next) => {
-            var data = args[0];
-            var sender = getChatroomCharacter(data.Sender);
+            let data = args[0];
+            let sender = getChatroomCharacter(data.Sender);
             if (data.Type == "Action" || data.Type == "Emote") {
                 callback(data, sender, data.Content, data.Dictionary);
             }
@@ -318,8 +320,8 @@ export function onActivity(priority: any, module: ModuleCategory, callback: (dat
         "ChatRoomMessage",
         priority,
         (args, next) => {
-            var data = args[0];
-            var sender = getChatroomCharacter(data.Sender);
+            let data = args[0];
+            let sender = getChatroomCharacter(data.Sender);
             if (data.Type == "Activity") {
                 callback(data, sender, data.Content, data.Dictionary);
             }
@@ -334,8 +336,8 @@ export function onSentMessage(priority: any, module: ModuleCategory, callback: (
         "ServerSend",
         priority,
         (args, next) => {
-            var data = args[1];
-            var sender = getChatroomCharacter(data.Sender);
+            let data = args[1];
+            let sender = getChatroomCharacter(data.Sender);
             if (args[0] === "ChatRoomChat") {
                 if (!data.Content.startsWith("(")) callback(data, sender, data.Content, data.Dictionary);
             }
@@ -471,8 +473,8 @@ export function isPhraseInString(string: string, phrase: string, ignoreOOC: bool
 }
 
 export function excludeParentheticalContent(msg: string): string {
-    var result = "";
-    var Par = false;
+    let result = "";
+    let Par = false;
     if (msg == null) msg = "";
     for (let i = 0; i < msg.length; i++) {
         let char = msg.charAt(i);

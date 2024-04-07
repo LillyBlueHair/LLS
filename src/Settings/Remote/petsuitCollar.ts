@@ -27,7 +27,7 @@ export class RemotePetsuitCollar extends RemoteGuiSubscreen {
 	}
 
 	get disabledReason(): string {
-		var memberIdIsAllowed = ServerChatRoomGetAllowItem(Player, this.Character);
+		let memberIdIsAllowed = ServerChatRoomGetAllowItem(Player, this.Character);
 		if (this.allowedMemberIds.length > 0)
 			memberIdIsAllowed = this.allowedMemberIds.indexOf(Player.MemberNumber!) > -1;
 
@@ -38,7 +38,7 @@ export class RemotePetsuitCollar extends RemoteGuiSubscreen {
 	}
 
 	get enabled(): boolean {
-		var memberIdIsAllowed: boolean = ServerChatRoomGetAllowItem(Player, this.Character);
+		let memberIdIsAllowed: boolean = ServerChatRoomGetAllowItem(Player, this.Character);
 		if (this.allowedMemberIds.length > 0)
 			memberIdIsAllowed = this.allowedMemberIds.indexOf(Player.MemberNumber!) > -1;
 		

@@ -43,7 +43,7 @@ export class MainMenu extends GuiSubscreen {
 	}
 
 	Run() {
-		var prev = MainCanvas.textAlign;
+		let prev = MainCanvas.textAlign;
 		MainCanvas.textAlign = "left";
 		DrawText(`- Lillys Little Scripts ${LLS_VERSION} -`, GuiSubscreen.START_X, GuiSubscreen.START_Y - GuiSubscreen.Y_MOD, "Black", "#D7F6E9");
 		DrawButton(1815, 75, 90, 90, "", "White", "Icons/Exit.png");

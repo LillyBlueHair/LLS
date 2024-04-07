@@ -112,8 +112,8 @@ export class CommandModule extends BaseModule {
     ];
 
     get orderedCommands(): ICommand[] {
-        var helpCommand = this.getSubcommand("help")!;
-        var sorted = this.llsCommands.filter((c) => c.Tag != "help").sort((a, b) => a.Tag.localeCompare(b.Tag));
+        let helpCommand = this.getSubcommand("help")!;
+        let sorted = this.llsCommands.filter((c) => c.Tag != "help").sort((a, b) => a.Tag.localeCompare(b.Tag));
         return [helpCommand, ...sorted];
     }
 
@@ -145,8 +145,8 @@ export class CommandModule extends BaseModule {
                     if (parsed.length <= 0) {
                         this.getSubcommand("help")!.Action!("", msg, []);
                     } else {
-                        var command = this.getSubcommand(parsed[0]);
-                        var subArgs = parsed.slice(1);
+                        let command = this.getSubcommand(parsed[0]);
+                        let subArgs = parsed.slice(1);
                         command?.Action!(subArgs.join(" "), msg, subArgs);
                     }
                 },

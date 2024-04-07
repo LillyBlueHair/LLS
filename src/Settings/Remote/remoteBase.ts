@@ -21,7 +21,7 @@ export abstract class RemoteGuiSubscreen extends GuiSubscreen {
 	}
 
 	setSubscreen(screen: RemoteGuiSubscreen): RemoteGuiSubscreen {
-		var rootModule = getModule<RemoteUiModule>("RemoteUiModule");
+		let rootModule = getModule<RemoteUiModule>("RemoteUiModule");
 		if (!!rootModule && !!screen) rootModule.currentSubscreen = screen;
 		return screen;
 	}
@@ -82,7 +82,7 @@ export abstract class RemoteGuiSubscreen extends GuiSubscreen {
 		});
 
 		this.settingsSave();
-		var rootModule = getModule<RemoteUiModule>("RemoteUiModule");
+		let rootModule = getModule<RemoteUiModule>("RemoteUiModule");
 		if (!!rootModule) rootModule.currentSubscreen = new RemoteMainMenu(rootModule, this.Character);
 	}
 }
