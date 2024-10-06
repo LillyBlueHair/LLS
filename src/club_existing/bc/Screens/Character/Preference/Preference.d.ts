@@ -642,6 +642,11 @@ declare const ScriptPermissionBits: Readonly<{
     Public: 32;
 }>;
 declare const maxScriptPermission: number;
+
+
+declare function PreferenceRegisterExtensionSetting(Setting: any): void;
+declare function PreferenceSubscreenExtensionsClear(): void;
+
 /**
  * An object defining which genders a setting is active for
  */

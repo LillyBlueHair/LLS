@@ -1,5 +1,4 @@
 import { ArtifactSettingsModel } from "./Models/artifacts";
-import { CraftModel } from "./Models/base";
 import { GuiSubscreen, Setting } from "./settingBase";
 import { getModule } from "modules";
 import { MiscModule } from "Modules/misc";

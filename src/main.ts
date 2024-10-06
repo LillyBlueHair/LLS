@@ -28,19 +28,6 @@ function initWait() {
 	}
 }
 
-export function initSettingsScreen() {
-	PreferenceSubscreenList.push("LLSMainMenu");
-	console.log("LLS: init Settings");
-	hookFunction("TextGet", 2, (args: string[], next: (arg0: any) => any) => {
-		if (args[0] == "HomepageLLSMainMenu") return "LLS Settings";
-		return next(args);
-	});
-	hookFunction("DrawButton", 2, (args: string[], next: (arg0: any) => any) => {
-		//if (args[6] == "Icons/LLSMainMenu.png") args[6] = ICONS.BOUND_GIRL;// "Icons/Asylum.png";
-		return next(args);
-	});
-}
-
 export function loginInit(C: any) {
 	if (window.LLS_Loaded) return;
 	init();
@@ -63,8 +50,6 @@ export function init() {
 	console.warn("LLS: Done Loading settings");*/
 
 	Player.LLS = Player.OnlineSettings?.LLS || <ISettingsModel>{};
-
-	initSettingsScreen();
 
 
 	if (!initModules()) {

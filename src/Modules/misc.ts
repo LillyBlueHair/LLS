@@ -19,6 +19,7 @@ export class MiscModule extends BaseModule {
 		// To draw the button for orgasm resist
 		hookFunction("ChatRoomRun", 1, (args, next) => {
 			next(args);
+            if(!this.Enabled) return;
 			if (this.settings.orgasmSkip) {
 				if (
 					Player.ArousalSettings != null &&
@@ -41,6 +42,7 @@ export class MiscModule extends BaseModule {
 		//To click the button for orgasm resist
 		hookFunction("ChatRoomClick", 1, (args, next) => {
 			next(args);
+            if(!this.Enabled) return;
 			if (this.settings.orgasmSkip) {
 				if (
 					Player.ArousalSettings != null &&

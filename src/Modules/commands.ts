@@ -33,9 +33,11 @@ export class CommandModule extends BaseModule {
             Tag: "cards",
             Description: ": Card deck commands",
             Action: (args, msg, parsed) => {
+                let printHelp = false;
                 if (parsed.length != 0) {
 					let number = 1;
 					let target;
+                    console.log(parsed);
                     switch (parsed[0].toLowerCase()) {
                         case "shuffle":
                             this.cards.shuffleDeck();
@@ -44,7 +46,10 @@ export class CommandModule extends BaseModule {
                             this.cards.printLog(false);
                             break;
                         case "deal":
-
+                            if (parsed.length != 3) {
+                                printHelp = true;
+                                break;
+                            }
                             if (/^[0-9]+$/.test(parsed[1])) {
                                 target = Number.parseInt(parsed[1], 10);
                             } else {
@@ -56,6 +61,10 @@ export class CommandModule extends BaseModule {
                             this.cards.dealCards(target, number, false);
                             break;
                         case "dealopen":
+                            if (parsed.length != 3) {
+                                printHelp = true;
+                                break;
+                            }
                             if (/^[0-9]+$/.test(parsed[1])) {
                                 target = Number.parseInt(parsed[1], 10);
                             } else {
@@ -69,10 +78,11 @@ export class CommandModule extends BaseModule {
                         case "log":
                             if (parsed[1] == "public") this.cards.printLog(false);
                             else if (parsed[1] == "private") this.cards.printLog(true);
-                            else sendLocal("Wrong usage");
+                            else printHelp = true;
                             break;
                     }
-                } else {
+                } 
+                if (printHelp){
                     let text: string =
                         "<br><b>/lls cards shuffle</b>: Shuffles the deck" +
                         "<br><b>/lls cards deal (player) [number]</b>: Deals [number] cards to the player face down. No number means 1" +
@@ -87,7 +97,8 @@ export class CommandModule extends BaseModule {
             Tag: "visibility",
             Description: ": Change the visibility of your character",
             Action: (args, msg, parsed) => {
-                if (parsed.length == 1) {
+                let printHelp = false;
+                if (parsed.length != 0) {
                     switch (parsed[0].toLowerCase()) {
                         case "hide":
                             this.misc.characterToggleVisibility("all", Player);
@@ -98,8 +109,12 @@ export class CommandModule extends BaseModule {
                         case "show":
                             this.misc.characterToggleVisibility("visible", Player);
                             break;
+                        default:
+                            printHelp = true;
+
                     }
-                } else {
+                } 
+                if (printHelp) {
                     let text: string =
                         "For these commands to work you need to enable 'hide' for 'self' in your Script-Settings" +
                         "<br><b>/lls visibility hide</b>: Hides your character" +

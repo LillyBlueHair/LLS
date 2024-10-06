@@ -507,7 +507,7 @@ var LLS = (function (exports) {
 	        return Player.LLS[this.settingsStorage];
 	    }
 	    get Enabled() {
-	        if (!Player.LLS || !Player.LLS.GlobalModule)
+	        if (!Player.LLS || !Player.LLS.GlobalModule || !Player.LLS.GlobalModule.enabled)
 	            return false;
 	        return (ServerPlayerIsInChatRoom() ||
 	            (CurrentModule == "Room" && CurrentScreen == "Crafting"));
@@ -543,39 +543,50 @@ var LLS = (function (exports) {
 	    }
 	}
 
-	/*export class SettingsModel implements ISettingsModel {
-	    Version: string = LLS_VERSION;
-	    RethrowExceptions: boolean = false;
-	    GlobalModule: GlobalSettingsModel = <GlobalSettingsModel>{};
-	    MiscModule: MiscSettingsModel = <MiscSettingsModel>{};
-	    ArtifactModule: ArtifactSettingsModel = <ArtifactSettingsModel>{
-	        ropeOfTighteningEnabled: false,
-	        publicRopeOfTighteningEnabled: false,
-	        ropeOfTightening: <RopeOfTighteningModel>{},
-	        petsuitCollarSetting: <PetsuitCollarSettingModel>{
-	            enabled: false,
-	            petsuitCollarEnabled: false,
-	            petsuitCollarRemoteAccess: false,
-	            petsuitCollarLockable: false,
-	            petsuitCollarSpeechEnabled: false,
-	            petsuitCollarTrigger: "",
-	            petsuitCollarAllowedMembers: "",
-	            petsuitCollarAllowSelfTrigger: false,
-	            petsuitCollarLockOwner: false,
-	            petsuitCollarLocked: false,
-	            petsuitCollarBuckleColor: "",
-	            petsuitCollar: <PetsuitCollarModel>{ name: "", creator: 0 },
-	            ropeOfTighteningEnabled: false,
-	            publicRopeOfTighteningEnabled: false,
-	            ropeOfTightening: <RopeOfTighteningModel>{ name: "", creator: 0 },
-	        },
-	    };
-	}*/
-	class PublicSettingsModel {
+	class SettingsModel {
 	    constructor() {
 	        this.Version = LLS_VERSION;
+	        this.RethrowExceptions = false;
 	        this.GlobalModule = {};
-	        this.MiscModule = { enabled: false };
+	        this.MiscModule = {};
+	        this.ArtifactModule = {
+	            petsuitCollarSetting: {
+	                enabled: false,
+	                remoteAccess: false,
+	                lockable: false,
+	                speechEnabled: false,
+	                trigger: "",
+	                allowedMembers: "",
+	                allowSelfTrigger: false,
+	                lockOwner: false,
+	                locked: false,
+	                buckleColor: "",
+	                strapColor: "",
+	                petsuitCollar: { name: "", creator: 0 },
+	            },
+	            cosplayEarEnabled: false,
+	            cosplayEars: { name: "", creator: 0 },
+	            cosplayTailColor: "",
+	            catSpeechEnabled: false,
+	            gagCollarEnabled: false,
+	            gagCollar: { name: "", creator: 0 },
+	            gagCollarTrigger: "",
+	            gagCollarColor: "",
+	            leashCollarEnabled: false,
+	            leashCollar: { name: "", creator: 0 },
+	            leashCollarTrigger: "",
+	            leashCollarColor: "",
+	            chastityPiercingsEnabled: false,
+	            clitChastityPiercing: { name: "", creator: 0 },
+	            //nippleChastityPiercing: <CraftModel>{ name: "", creator: 0 },
+	            chastityPiercingTrigger: "",
+	        };
+	    }
+	}
+	class PublicSettingsModel {
+	    constructor() {
+	        this.enabled = true;
+	        this.Version = LLS_VERSION;
 	        this.ArtifactModule = {
 	            catSpeechEnabled: false,
 	            petsuitCollarSetting: {
@@ -590,9 +601,7 @@ var LLS = (function (exports) {
 	                locked: false,
 	                buckleColor: "",
 	                strapColor: "",
-	                petsuitCollar: { name: "", creator: 0 },
-	                ropeOfTighteningEnabled: false,
-	                publicRopeOfTighteningEnabled: false,
+	                petsuitCollar: { name: "", creator: 0 }
 	            },
 	            cosplayEarEnabled: false,
 	        };
@@ -616,14 +625,6 @@ var LLS = (function (exports) {
 	        this.preferenceColorPick = "";
 	        this.preferenceColorPickLeft = true;
 	        this.module = module;
-	        // create each handler for a new preference subscreen
-	        SETTING_FUNC_NAMES.forEach((name) => {
-	            const fName = SETTING_FUNC_PREFIX + SETTING_NAME_PREFIX + this.name + name;
-	            if (typeof this[name] === "function" && typeof window[fName] !== "function")
-	                window[fName] = () => {
-	                    this[name]();
-	                };
-	        });
 	    }
 	    get name() {
 	        return "UNKNOWN";
@@ -920,10 +921,17 @@ var LLS = (function (exports) {
 	        return [
 	            {
 	                type: "checkbox",
+	                label: "LLS enabled:",
+	                description: "Enables Lilly's Little Scripts.",
+	                setting: () => { var _a; return (_a = Player.LLS.GlobalModule.enabled) !== null && _a !== void 0 ? _a : false; },
+	                setSetting: (val) => Player.LLS.GlobalModule.enabled = val
+	            },
+	            {
+	                type: "checkbox",
 	                label: "Automatically resist orgasms:",
 	                description: "Enables the button to immediately resist orgasms.",
-	                setting: () => { var _a; return (_a = Player.LLS.MiscModule.orgasmSkip) !== null && _a !== void 0 ? _a : false; },
-	                setSetting: (val) => Player.LLS.MiscModule.orgasmSkip = val
+	                setting: () => { var _a; return (_a = this.settings.orgasmSkip) !== null && _a !== void 0 ? _a : false; },
+	                setSetting: (val) => this.settings.orgasmSkip = val
 	            }
 	        ];
 	    }
@@ -1064,11 +1072,14 @@ var LLS = (function (exports) {
 	    }
 	    Exit() {
 	        this.setSubscreen(null);
+	        PreferenceSubscreenExtensionsClear();
 	    }
 	}
 
 	class GUI extends BaseModule {
-	    get subscreens() { return this._subscreens; }
+	    get subscreens() {
+	        return this._subscreens;
+	    }
 	    get mainMenu() {
 	        return this._mainMenu;
 	    }
@@ -1076,12 +1087,12 @@ var LLS = (function (exports) {
 	        return this._currentSubscreen;
 	    }
 	    set currentSubscreen(subscreen) {
-	        var _a, _b;
+	        var _a;
 	        if (this._currentSubscreen) {
 	            this._currentSubscreen.Unload();
 	        }
 	        if (typeof subscreen === "string") {
-	            const scr = (_a = this._subscreens) === null || _a === void 0 ? void 0 : _a.find(s => s.name === subscreen);
+	            const scr = (_a = this._subscreens) === null || _a === void 0 ? void 0 : _a.find((s) => s.name === subscreen);
 	            if (!scr)
 	                throw `Failed to find screen name ${subscreen}`;
 	            this._currentSubscreen = scr;
@@ -1092,13 +1103,9 @@ var LLS = (function (exports) {
 	        // Reset that first, in case it gets set in the screen's Load callback
 	        PreferenceMessage = "";
 	        PreferencePageCurrent = 1;
-	        let subscreenName = "";
 	        if (this._currentSubscreen) {
-	            subscreenName = SETTING_NAME_PREFIX + ((_b = this._currentSubscreen) === null || _b === void 0 ? void 0 : _b.name);
 	            this._currentSubscreen.Load();
 	        }
-	        // Get BC to render the new screen
-	        PreferenceSubscreen = subscreenName;
 	    }
 	    get currentCharacter() {
 	        return Player;
@@ -1119,9 +1126,7 @@ var LLS = (function (exports) {
 	            throw new Error("Duplicate initialization");
 	        }
 	        this._mainMenu = new MainMenu(this);
-	        this._subscreens = [
-	            this._mainMenu
-	        ];
+	        this._subscreens = [this._mainMenu];
 	        GUI.instance = this;
 	    }
 	    get defaultSettings() {
@@ -1137,6 +1142,35 @@ var LLS = (function (exports) {
 	            this._subscreens.push(new module.settingsScreen(module));
 	        }
 	        this._mainMenu.subscreens = this._subscreens;
+	        PreferenceRegisterExtensionSetting({
+	            Identifier: "LLS",
+	            ButtonText: "LLS Settings",
+	            load: () => {
+	                setSubscreen(new MainMenu(this));
+	            },
+	            run: () => {
+	                if (this._currentSubscreen) {
+	                    MainCanvas.textAlign = "left";
+	                    this._currentSubscreen.Run();
+	                    MainCanvas.textAlign = "center";
+	                }
+	            },
+	            click: () => {
+	                if (this._currentSubscreen) {
+	                    this._currentSubscreen.Click();
+	                }
+	            },
+	            exit: () => {
+	                if (this._currentSubscreen) {
+	                    this._currentSubscreen.Exit();
+	                }
+	            },
+	            unload: () => {
+	                if (this._currentSubscreen) {
+	                    this._currentSubscreen.Unload();
+	                }
+	            },
+	        });
 	    }
 	}
 	GUI.instance = null;
@@ -1334,9 +1368,11 @@ var LLS = (function (exports) {
 	                Tag: "cards",
 	                Description: ": Card deck commands",
 	                Action: (args, msg, parsed) => {
+	                    let printHelp = false;
 	                    if (parsed.length != 0) {
 	                        let number = 1;
 	                        let target;
+	                        console.log(parsed);
 	                        switch (parsed[0].toLowerCase()) {
 	                            case "shuffle":
 	                                this.cards.shuffleDeck();
@@ -1345,6 +1381,10 @@ var LLS = (function (exports) {
 	                                this.cards.printLog(false);
 	                                break;
 	                            case "deal":
+	                                if (parsed.length != 3) {
+	                                    printHelp = true;
+	                                    break;
+	                                }
 	                                if (/^[0-9]+$/.test(parsed[1])) {
 	                                    target = Number.parseInt(parsed[1], 10);
 	                                }
@@ -1357,6 +1397,10 @@ var LLS = (function (exports) {
 	                                this.cards.dealCards(target, number, false);
 	                                break;
 	                            case "dealopen":
+	                                if (parsed.length != 3) {
+	                                    printHelp = true;
+	                                    break;
+	                                }
 	                                if (/^[0-9]+$/.test(parsed[1])) {
 	                                    target = Number.parseInt(parsed[1], 10);
 	                                }
@@ -1374,11 +1418,11 @@ var LLS = (function (exports) {
 	                                else if (parsed[1] == "private")
 	                                    this.cards.printLog(true);
 	                                else
-	                                    sendLocal("Wrong usage");
+	                                    printHelp = true;
 	                                break;
 	                        }
 	                    }
-	                    else {
+	                    if (printHelp) {
 	                        let text = "<br><b>/lls cards shuffle</b>: Shuffles the deck" +
 	                            "<br><b>/lls cards deal (player) [number]</b>: Deals [number] cards to the player face down. No number means 1" +
 	                            "<br><b>/lls cards dealopen (player) [number]</b>: Deals [number] cards to the player face up. No number means 1" +
@@ -1392,7 +1436,8 @@ var LLS = (function (exports) {
 	                Tag: "visibility",
 	                Description: ": Change the visibility of your character",
 	                Action: (args, msg, parsed) => {
-	                    if (parsed.length == 1) {
+	                    let printHelp = false;
+	                    if (parsed.length != 0) {
 	                        switch (parsed[0].toLowerCase()) {
 	                            case "hide":
 	                                this.misc.characterToggleVisibility("all", Player);
@@ -1403,9 +1448,11 @@ var LLS = (function (exports) {
 	                            case "show":
 	                                this.misc.characterToggleVisibility("visible", Player);
 	                                break;
+	                            default:
+	                                printHelp = true;
 	                        }
 	                    }
-	                    else {
+	                    if (printHelp) {
 	                        let text = "For these commands to work you need to enable 'hide' for 'self' in your Script-Settings" +
 	                            "<br><b>/lls visibility hide</b>: Hides your character" +
 	                            "<br><b>/lls visibility show</b>: Shows your character" +
@@ -1606,43 +1653,49 @@ var LLS = (function (exports) {
 	        super(...arguments);
 	        this.private = false;
 	    }
+	    get Enabled() {
+	        return super.Enabled;
+	    }
 	    Load() {
-	        hookFunction("CraftingRun", 1, (args, next) => {
-	            next(args);
+	        /*hookFunction("CraftingRun", 1, (args, next) => {
+	            next(args)
+	            if(!this.Enabled) return;
 	            const C = Player;
-	            if (!!C && C.IsPlayer() && !!C.Crafting && CraftingMode == "Slot") {
-	                let craft = null;
-	                for (let i = CraftingOffset; i < CraftingOffset + 20; i++) {
+	            if(!!C && C.IsPlayer() && !!C.Crafting && CraftingMode == "Slot"){
+	                let craft: CraftingItem | null = null;
+	                for(let i = CraftingOffset; i < CraftingOffset + 20; i++){
 	                    craft = C.Crafting[i];
-	                    if (craft) {
+	                    if(craft){
 	                        break;
 	                    }
 	                }
-	                if (craft && (craft === null || craft === void 0 ? void 0 : craft.Private)) {
+	                if(craft && craft?.Private){
 	                    this.private = true;
 	                    DrawButton(15, 15, 64, 64, "", "White", "Icons/Checked.png", "Whole page is private");
-	                }
-	                else {
+	                }else{
 	                    this.private = false;
 	                    DrawButton(15, 15, 64, 64, "", "White", "", "Whole page is private");
 	                }
 	            }
 	        }, ModuleCategory.Crafts);
+
 	        hookFunction("CraftingClick", 1, (args, next) => {
-	            next(args);
+	            next(args)
+	            if(!this.Enabled) return;
 	            const C = Player;
-	            if (!!C && C.IsPlayer() && !!C.Crafting && CraftingMode == "Slot") {
-	                if (MouseIn(15, 15, 64, 64)) {
+	            if(!!C && C.IsPlayer() && !!C.Crafting && CraftingMode == "Slot"){
+	                if(MouseIn(15, 15, 64, 64)){
 	                    this.private = !this.private;
-	                    for (let i = CraftingOffset; i < CraftingOffset + 20; i++) {
-	                        const craft = C.Crafting[i];
-	                        if (craft) {
-	                            craft.Private = this.private;
-	                        }
+	                for(let i = CraftingOffset; i < CraftingOffset + 20; i++){
+	                    const craft = C.Crafting[i];
+	                    if(craft){
+	                        craft.Private = this.private;
 	                    }
 	                }
 	            }
-	        }, ModuleCategory.Crafts);
+	                
+	            }
+	        }, ModuleCategory.Crafts);*/
 	    }
 	    Unload() {
 	        removeAllHooksByModule(ModuleCategory.Commands);
@@ -1663,6 +1716,8 @@ var LLS = (function (exports) {
 	        // To draw the button for orgasm resist
 	        hookFunction("ChatRoomRun", 1, (args, next) => {
 	            next(args);
+	            if (!this.Enabled)
+	                return;
 	            if (this.settings.orgasmSkip) {
 	                if (Player.ArousalSettings != null &&
 	                    Player.ArousalSettings.Active != null &&
@@ -1681,6 +1736,8 @@ var LLS = (function (exports) {
 	        //To click the button for orgasm resist
 	        hookFunction("ChatRoomClick", 1, (args, next) => {
 	            next(args);
+	            if (!this.Enabled)
+	                return;
 	            if (this.settings.orgasmSkip) {
 	                if (Player.ArousalSettings != null &&
 	                    Player.ArousalSettings.OrgasmTimer != null &&
@@ -1782,7 +1839,7 @@ var LLS = (function (exports) {
 	                },
 	                {
 	                    type: "checkbox",
-	                    label: "Allow Self-Speechtrigger:",
+	                    label: "Allow Self-Trigger:",
 	                    description: "Allows the wearer of the collar to trigger the speech commands.",
 	                    setting: () => { var _a; return (_a = this.settings.petsuitCollarSetting.allowSelfTrigger) !== null && _a !== void 0 ? _a : false; },
 	                    setSetting: (val) => (this.settings.petsuitCollarSetting.allowSelfTrigger = val),
@@ -1812,7 +1869,7 @@ var LLS = (function (exports) {
 	                    description: "The current collar equipped.",
 	                    setting: () => this.settings.petsuitCollarSetting.petsuitCollar,
 	                    setSetting: (val) => (this.settings.petsuitCollarSetting.petsuitCollar = val),
-	                    disabled: !this.settings.petsuitCollarSetting.enabled,
+	                    disabled: !this.settings.petsuitCollarSetting.enabled || this.settings.petsuitCollarSetting.locked,
 	                },
 	                {
 	                    type: "null"
@@ -2058,10 +2115,14 @@ var LLS = (function (exports) {
 	    get settingsScreen() {
 	        return GuiArtifact;
 	    }
+	    get Enabled() {
+	        return super.Enabled;
+	    }
 	    Load() {
 	        onChat(100, ModuleCategory.Artifacts, false, true, (data, sender, msg, metadata) => {
-	            var _a;
-	            let artifactSettings = (_a = Player.LLS) === null || _a === void 0 ? void 0 : _a.ArtifactModule;
+	            if (!this.Enabled)
+	                return;
+	            let artifactSettings = this.settings;
 	            if (artifactSettings && artifactSettings.petsuitCollarSetting.enabled) {
 	                if (artifactSettings.petsuitCollarSetting.trigger.trim() != "" &&
 	                    isPhraseInString(msg.toLowerCase(), artifactSettings.petsuitCollarSetting.trigger.toLowerCase(), false) &&
@@ -2096,6 +2157,8 @@ var LLS = (function (exports) {
 	        });
 	        onActivity(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => { });
 	        onAction(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
+	            if (!this.Enabled)
+	                return;
 	            if (msg == "ItemHoodHarnessCatMaskSetEars") {
 	                this.activateCosplayTail(Player);
 	            }
@@ -2105,6 +2168,8 @@ var LLS = (function (exports) {
 	            return;
 	        });
 	        onSentMessage(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
+	            if (!this.Enabled)
+	                return;
 	            if (data.Type === "Chat") {
 	                sender = sender ? sender : Player;
 	                this.catSpeech(data);
@@ -2241,18 +2306,18 @@ var LLS = (function (exports) {
 	    }
 	    //Cosplay Ears + Tail
 	    wearingCosplayEars(C) {
-	        var _a, _b, _c, _d, _e, _f, _g;
+	        var _a, _b, _c, _d, _e;
 	        let ears = InventoryGet(C, "ItemHood");
-	        let earSetting = (_a = C.LLS) === null || _a === void 0 ? void 0 : _a.ArtifactModule.cosplayEars;
-	        let enabled = (_b = C.LLS) === null || _b === void 0 ? void 0 : _b.ArtifactModule.cosplayEarEnabled;
+	        let earSetting = this.settings.cosplayEars;
+	        let enabled = this.settings.cosplayEarEnabled;
 	        if (!ears || !enabled || !earSetting)
 	            return false;
 	        if (!earSetting.creator) {
 	            return ears.Asset.Name != "HarnessCatMask";
 	        }
 	        else {
-	            let collarName = (_e = (_d = (_c = ears.Craft) === null || _c === void 0 ? void 0 : _c.Name) !== null && _d !== void 0 ? _d : ears === null || ears === void 0 ? void 0 : ears.Asset.Name) !== null && _e !== void 0 ? _e : "";
-	            let collarCreator = (_g = (_f = ears === null || ears === void 0 ? void 0 : ears.Craft) === null || _f === void 0 ? void 0 : _f.MemberNumber) !== null && _g !== void 0 ? _g : -1;
+	            let collarName = (_c = (_b = (_a = ears.Craft) === null || _a === void 0 ? void 0 : _a.Name) !== null && _b !== void 0 ? _b : ears === null || ears === void 0 ? void 0 : ears.Asset.Name) !== null && _c !== void 0 ? _c : "";
+	            let collarCreator = (_e = (_d = ears === null || ears === void 0 ? void 0 : ears.Craft) === null || _d === void 0 ? void 0 : _d.MemberNumber) !== null && _e !== void 0 ? _e : -1;
 	            return collarName == earSetting.name && collarCreator == earSetting.creator;
 	        }
 	    }
@@ -2273,8 +2338,7 @@ var LLS = (function (exports) {
 	    }
 	    // Cat Speech Mask
 	    catSpeech(data) {
-	        var _a, _b;
-	        let catSpeech = (_b = (_a = Player.LLS) === null || _a === void 0 ? void 0 : _a.ArtifactModule) === null || _b === void 0 ? void 0 : _b.catSpeechEnabled;
+	        let catSpeech = this.settings.catSpeechEnabled;
 	        if (!catSpeech)
 	            return;
 	        if (!this.wearingCatSpeechMask(Player))
@@ -2303,9 +2367,9 @@ var LLS = (function (exports) {
 	    }
 	    // Petsuit Collar
 	    wearingPetsuitCollar(C) {
-	        var _a, _b, _c, _d, _e, _f;
+	        var _a, _b, _c, _d, _e;
 	        let collar = InventoryGet(C, "ItemNeck");
-	        let collarSettings = (_a = C.LLS) === null || _a === void 0 ? void 0 : _a.ArtifactModule.petsuitCollarSetting;
+	        let collarSettings = this.settings.petsuitCollarSetting;
 	        if (!collar || !collarSettings || !collarSettings.enabled)
 	            return false;
 	        if (!collarSettings.petsuitCollar.name)
@@ -2315,8 +2379,8 @@ var LLS = (function (exports) {
 	            return (collar === null || collar === void 0 ? void 0 : collar.Asset.Name) == collarSettings.petsuitCollar.name;
 	        }
 	        else {
-	            let collarName = (_d = (_c = (_b = collar === null || collar === void 0 ? void 0 : collar.Craft) === null || _b === void 0 ? void 0 : _b.Name) !== null && _c !== void 0 ? _c : collar === null || collar === void 0 ? void 0 : collar.Asset.Name) !== null && _d !== void 0 ? _d : "";
-	            let collarCreator = (_f = (_e = collar === null || collar === void 0 ? void 0 : collar.Craft) === null || _e === void 0 ? void 0 : _e.MemberNumber) !== null && _f !== void 0 ? _f : -1;
+	            let collarName = (_c = (_b = (_a = collar === null || collar === void 0 ? void 0 : collar.Craft) === null || _a === void 0 ? void 0 : _a.Name) !== null && _b !== void 0 ? _b : collar === null || collar === void 0 ? void 0 : collar.Asset.Name) !== null && _c !== void 0 ? _c : "";
+	            let collarCreator = (_e = (_d = collar === null || collar === void 0 ? void 0 : collar.Craft) === null || _d === void 0 ? void 0 : _d.MemberNumber) !== null && _e !== void 0 ? _e : -1;
 	            return collarName == collarSettings.petsuitCollar.name && collarCreator == collarSettings.petsuitCollar.creator;
 	        }
 	    }
@@ -2329,10 +2393,10 @@ var LLS = (function (exports) {
 	        }
 	    }
 	    petsuitCollarActivate(C) {
-	        var _a, _b, _c;
-	        let collarSettings = (_a = C.LLS) === null || _a === void 0 ? void 0 : _a.ArtifactModule.petsuitCollarSetting;
-	        let buckleColor = (_b = collarSettings === null || collarSettings === void 0 ? void 0 : collarSettings.buckleColor) !== null && _b !== void 0 ? _b : "#5AC5EE";
-	        let strapColor = (_c = collarSettings === null || collarSettings === void 0 ? void 0 : collarSettings.strapColor) !== null && _c !== void 0 ? _c : "#2C2C2C";
+	        var _a, _b;
+	        let collarSettings = this.settings.petsuitCollarSetting;
+	        let buckleColor = (_a = collarSettings === null || collarSettings === void 0 ? void 0 : collarSettings.buckleColor) !== null && _a !== void 0 ? _a : "#5AC5EE";
+	        let strapColor = (_b = collarSettings === null || collarSettings === void 0 ? void 0 : collarSettings.strapColor) !== null && _b !== void 0 ? _b : "#2C2C2C";
 	        if (!buckleColor.startsWith("#"))
 	            buckleColor = "#" + buckleColor;
 	        if (!strapColor.startsWith("#"))
@@ -2860,19 +2924,6 @@ var LLS = (function (exports) {
 	        init();
 	    }
 	}
-	function initSettingsScreen() {
-	    PreferenceSubscreenList.push("LLSMainMenu");
-	    console.log("LLS: init Settings");
-	    hookFunction("TextGet", 2, (args, next) => {
-	        if (args[0] == "HomepageLLSMainMenu")
-	            return "LLS Settings";
-	        return next(args);
-	    });
-	    hookFunction("DrawButton", 2, (args, next) => {
-	        //if (args[6] == "Icons/LLSMainMenu.png") args[6] = ICONS.BOUND_GIRL;// "Icons/Asylum.png";
-	        return next(args);
-	    });
-	}
 	function loginInit(C) {
 	    if (window.LLS_Loaded)
 	        return;
@@ -2894,7 +2945,6 @@ var LLS = (function (exports) {
 	    Player.LLS = reduced
 	    console.warn("LLS: Done Loading settings");*/
 	    Player.LLS = ((_a = Player.OnlineSettings) === null || _a === void 0 ? void 0 : _a.LLS) || {};
-	    initSettingsScreen();
 	    if (!initModules()) {
 	        unload();
 	        return;
@@ -2966,7 +3016,6 @@ var LLS = (function (exports) {
 	initWait();
 
 	exports.init = init;
-	exports.initSettingsScreen = initSettingsScreen;
 	exports.loginInit = loginInit;
 	exports.unload = unload;
 

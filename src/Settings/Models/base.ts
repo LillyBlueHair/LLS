@@ -6,6 +6,7 @@ export interface ModuleStats {
 }
 
 export interface GlobalSettingsModel extends GlobalPublicSettingsModel {
+    enabled: boolean;    
 }
 
 export interface GlobalPublicSettingsModel extends BaseSettingsModel {

@@ -84,9 +84,14 @@ export class ArtifactModule extends BaseModule {
         return GuiArtifact;
     }
 
+    get Enabled(): boolean {
+        return super.Enabled;
+    }
+
     Load(): void {
         onChat(100, ModuleCategory.Artifacts, false, true, (data, sender, msg, metadata) => {
-            let artifactSettings = Player.LLS?.ArtifactModule;
+            if(!this.Enabled) return;
+            let artifactSettings = this.settings;
             if (artifactSettings && artifactSettings.petsuitCollarSetting.enabled) {
                 if (
                     artifactSettings.petsuitCollarSetting.trigger.trim() != "" &&
@@ -124,6 +129,8 @@ export class ArtifactModule extends BaseModule {
         onActivity(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {});
 
         onAction(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
+            if(!this.Enabled) return;
+
             if (msg == "ItemHoodHarnessCatMaskSetEars") {
                 this.activateCosplayTail(Player);
             } else if (msg == "ItemHoodHarnessCatMaskSetNoEars") {
@@ -133,6 +140,7 @@ export class ArtifactModule extends BaseModule {
         });
 
         onSentMessage(10, ModuleCategory.Artifacts, (data, sender, msg, metadata) => {
+            if(!this.Enabled) return;
             if (data.Type === "Chat") {
                 sender = sender ? sender : Player;
                 this.catSpeech(data);
@@ -275,8 +283,8 @@ export class ArtifactModule extends BaseModule {
 
     wearingCosplayEars(C: OtherCharacter | PlayerCharacter): boolean {
         let ears = InventoryGet(C, "ItemHood");
-        let earSetting = C.LLS?.ArtifactModule.cosplayEars;
-        let enabled = C.LLS?.ArtifactModule.cosplayEarEnabled;
+        let earSetting = this.settings.cosplayEars;
+        let enabled = this.settings.cosplayEarEnabled;
         if (!ears || !enabled || !earSetting) return false;
         if (!earSetting.creator) {
             return ears.Asset.Name != "HarnessCatMask";
@@ -304,7 +312,7 @@ export class ArtifactModule extends BaseModule {
     // Cat Speech Mask
 
     catSpeech(data: any): void {
-        let catSpeech = Player.LLS?.ArtifactModule?.catSpeechEnabled;
+        let catSpeech = this.settings.catSpeechEnabled;
         if (!catSpeech) return;
         if (!this.wearingCatSpeechMask(Player)) return;
 
@@ -332,7 +340,7 @@ export class ArtifactModule extends BaseModule {
 
     wearingPetsuitCollar(C: OtherCharacter | PlayerCharacter): boolean {
         let collar = InventoryGet(C, "ItemNeck");
-        let collarSettings = C.LLS?.ArtifactModule.petsuitCollarSetting;
+        let collarSettings = this.settings.petsuitCollarSetting;
         if (!collar || !collarSettings || !collarSettings.enabled) return false;
 
         if (!collarSettings.petsuitCollar.name) return true;
@@ -356,7 +364,7 @@ export class ArtifactModule extends BaseModule {
     }
 
     petsuitCollarActivate(C: OtherCharacter | PlayerCharacter): void {
-        let collarSettings = C.LLS?.ArtifactModule.petsuitCollarSetting;
+        let collarSettings = this.settings.petsuitCollarSetting;
         let buckleColor = collarSettings?.buckleColor ?? "#5AC5EE";
         let strapColor = collarSettings?.strapColor ?? "#2C2C2C";
 

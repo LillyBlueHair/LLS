@@ -111,5 +111,6 @@ export class MainMenu extends GuiSubscreen {
 
 	Exit(): void {
 		this.setSubscreen(null);
+		PreferenceSubscreenExtensionsClear();
 	}
 }

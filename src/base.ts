@@ -24,7 +24,7 @@ export abstract class BaseModule {
 	}
 
 	get Enabled(): boolean {
-		if (!Player.LLS || !Player.LLS.GlobalModule)
+		if (!Player.LLS || !Player.LLS.GlobalModule || !Player.LLS.GlobalModule.enabled)
 			return false;
 		return (ServerPlayerIsInChatRoom() || 
 			(CurrentModule == "Room" && CurrentScreen == "Crafting"));

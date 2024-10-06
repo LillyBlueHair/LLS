@@ -5,9 +5,14 @@ import { hookFunction, removeAllHooksByModule } from "utils";
 
 export class CraftsModule extends BaseModule {
     private: boolean = false;
+    get Enabled(): boolean {
+        return super.Enabled
+    }
+
     Load(): void {
-        hookFunction("CraftingRun", 1, (args, next) => {
+        /*hookFunction("CraftingRun", 1, (args, next) => {
             next(args)
+            if(!this.Enabled) return;
             const C = Player;
             if(!!C && C.IsPlayer() && !!C.Crafting && CraftingMode == "Slot"){
                 let craft: CraftingItem | null = null;
@@ -29,6 +34,7 @@ export class CraftsModule extends BaseModule {
 
         hookFunction("CraftingClick", 1, (args, next) => {
             next(args)
+            if(!this.Enabled) return;
             const C = Player;
             if(!!C && C.IsPlayer() && !!C.Crafting && CraftingMode == "Slot"){
                 if(MouseIn(15, 15, 64, 64)){
@@ -42,7 +48,7 @@ export class CraftsModule extends BaseModule {
             }
                 
             }
-        }, ModuleCategory.Crafts);
+        }, ModuleCategory.Crafts);*/
     }
 
 	Unload(): void {
