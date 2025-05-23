@@ -269,12 +269,12 @@ export function onChat(
             "ChatRoomMessage",
             priority,
             (args, next) => {
-                if(afterOtherFunctions)next(args);
-                
+                if (afterOtherFunctions) next(args);
+
                 let data = args[0];
                 let sender = getChatroomCharacter(data.Sender);
                 if (data.Type == "Chat" || data.Type == "Whisper") callback(data, sender, data.Content, data.Dictionary);
-                if(!afterOtherFunctions)next(args);
+                if (!afterOtherFunctions) next(args);
             },
             module
         );
@@ -283,16 +283,16 @@ export function onChat(
             "ChatRoomMessage",
             priority,
             (args, next) => {
-                if(afterOtherFunctions)next(args);
+                if (afterOtherFunctions) next(args);
                 let data = args[0];
                 let sender = getChatroomCharacter(data.Sender) as Character;
                 let ungarbled = data.Content;
-                if(sender && sender.Appearance) {
-                    data.Content = callOriginal("SpeechGarble", [sender, ungarbled])
+                if (sender && sender.Appearance) {
+                    data.Content = callOriginal("SpeechGarble", [sender, ungarbled]);
                 }
                 if (data.Type == "Chat" || data.Type == "Whisper") callback(data, sender, data.Content, data.Dictionary);
                 data.Content = ungarbled;
-                if(!afterOtherFunctions)next(args);
+                if (!afterOtherFunctions) next(args);
             },
             module
         );
@@ -382,6 +382,12 @@ export function hookFunction(target: string, priority: number, hook: PatchHook, 
     });
     data.hooks.sort((a, b) => b.priority - a.priority);
     return removeCallback;
+}
+
+export function patchFunction(target: string, patches: Record<string, string | null>): void {
+    //TODO
+    bcModSDK.patchFunction(target, patches);
+    //TODO
 }
 
 export function settingsSave(publish: boolean = false) {

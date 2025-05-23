@@ -389,6 +389,11 @@ var LLS = (function (exports) {
 	    data.hooks.sort((a, b) => b.priority - a.priority);
 	    return removeCallback;
 	}
+	function patchFunction(target, patches) {
+	    //TODO
+	    bcModSDK.patchFunction(target, patches);
+	    //TODO
+	}
 	function settingsSave(publish = false) {
 	    var _a;
 	    if (!Player.OnlineSettings)
@@ -1749,6 +1754,10 @@ var LLS = (function (exports) {
 	                    }
 	                }
 	            }
+	        });
+	        // Screenshot Cross Origin
+	        patchFunction("DrawRoomBackground", {
+	            'const img = URL !== "" ? DrawGetImage(URL) : undefined;': 'const img = URL !== "" ? DrawGetImage(URL) : undefined;\n\t\timg.crossOrigin = "anonymous";',
 	        });
 	    }
 	    characterToggleVisibility(mode, C) {
