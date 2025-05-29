@@ -2947,7 +2947,7 @@ var LLS = (function (exports) {
 	            if (!!C && this.characterHasMod(C) && !C.IsPlayer()) {
 	                const playerHasAccessToCharacter = this.playerHasAccessToCharacter(C);
 	                DrawButton(450, 60, 60, 60, "", (playerHasAccessToCharacter && !this.playerIsRestrained) ? "White" : "#ddd", "", playerHasAccessToCharacter ? (this.playerIsRestrained ? "Cannot access while restrained" : "LLS Remote Settings") : "Needs BC item permission", !playerHasAccessToCharacter || this.playerIsRestrained);
-	                DrawImageResize(ICONS.REMOTE, 95, 65, 50, 50);
+	                DrawImageResize(ICONS.REMOTE, 455, 65, 50, 50);
 	            }
 	        }, ModuleCategory.RemoteUi);
 	        hookFunction("InformationSheetClick", 10, (args, next) => {
