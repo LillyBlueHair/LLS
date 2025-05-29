@@ -490,6 +490,9 @@ var LLS = (function (exports) {
 	/*export function hookLSCGMagic(trigger: "curseTrigger", listener: (v: { action: "remove" | "add" | "swap" | "update" | "color" | "autoremove"; group: string; }) => void){
 	    window.LSCG?.getModApi("LLS").on?.(trigger, listener);
 	}*/
+	const ICONS = Object.freeze({
+	    BLUEBERRY: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFYAAABWCAYAAABVVmH3AAAAAXNSR0IArs4c6QAADSBJREFUeF7tXHmQHGUVf33MzF6BZHeOnmN3slk2MTFGIwE8wOKoWAVoAghEpaikQBMUtErEoqzCCywLLa2yRIimwFJLPAiWxAiEIyyI3AkCATHJ7uw1586xySY7OzN9fNb7dnuZnczR3dM9CzJf1f6x2+9733u/7/X73vH1MtAcliDAWMK1yRSawFpkBE1gm8BahIBFbJsW2wTWIgQsYtu02CawFiFgEdumxTaBtQgBi9g2LbYJrEUIWMS2abHvZ2DXrVvXm0wmQ6ykAMuyIMsyMAwDhBAKi0iU8WQ61WMRRobYvqstdtnpS0mbowXsNhsUCoWaCiosA0SUIJ5JLbpeiy5AObS8HoGwyqw1GhlozQVJhIlMetH0W7SFywEWELyEIQCKoujCE10Cz/NAOBZyJ6fBbrfT+S0tLXB8evqWVCb1M10MTSB+1wAb7O4hUi5fU6W7dt4Dl11xOQABWL1qFeRyOTg6NAQcz1H/++abb8LFF22c97+4SSJRINVg631XAOtDS5VrW2lBkWEilaSHF/6gZSJwCOjk5CTYbDbo6OgAwekCnuUWbBLOTaYb53sXHdjOpctIq2321a018HCKxmPgE7wAkgys3Qbr16+Hfx84CDDnDkaiYbjyssvhxedfWMAONwJdw0g03BCdG7JIJcACHuFhopBLagGqPlctFoGtdLiFJ+KU3NXlBI7jgC/pPkWSiYbo3JBFKgHndboJy2gTQZRliKcmKKuAx1uxWUfp0kkgsgLpdBo+tGbNAreQy+cgPXVc26Jad7wMneULVATVIxBFkk7xhZXox2JRYDkWNm/eDAdfeKmiymilOP718ovg9Xph169+DT+6/Y4F9DOyeDSTyaysA7eaUxcNWL/LoytQDYXHYO3atXAsMwn2koOpnJYf/PA6eOyJx2H37t3wjRu/toAEw7NoasJS3S1lXtG3+vwyESW25rYXEbz+9lvQ1dUFe/bsoUBVy8Su2/5l+P7tP6DRgt/loenvKYPjt0TikQf0yKCHdlGA1WutqBBGAKPjYxQkBLXX310eMAAYi0fpM7/XV/GQy0kipCczlulvGeNqu2sEWJXfR88+C/7+j72wvCcIlRIKjAwee3QfXL91W1UjszJCaDiwbrf7Mhth/qbntSqmRUvEWDUUCsGnzj0P2trb4MjRo5Rk27ZtMPDEkxCOx+CZgafhmi2ff/8AqzXLqobI0ZFhaGltmXcFam1BLSOib12zejWcyByrCmxr65K1g2ODbxnd5GrzGm6x9bgBVRGHwwGDYyM0rf3ql7bDI488Mq/jpy+9GP65f4DWEGoNGeA38WTi+lp0Rp43HNjlvu4toigSm8PuzRXyP0frwhoqxp+qxWlRRLXS0nmEAcAKmabBMg9EEvEtmmh1EjUc2GryBdzCbkLIlTp1MExub3X8fnhsbKthBlUmNgxYQRBu5RX4pkIUF8dy6B+z9tbWnYPDQ7eUyufxeNp5BU5aoXAxT95hu2Q0HH7UinWsBJbzutwSy/OgFEQarFcaoijSIjUhyk9Tmcy3VLpVq1ZtmD429QrRWfjWCtR7KtzqCwYvPHH8xH4EUs3btSqKdOg77S2OyGgkHFDnuTq7iJ3ja7KRgEwkkhOemoQA0O0PkPGIdSVEUy22J9BN5Hztpp8WxWUGgOW59mg0mkV6Z2cXcZSAi4XtbD4HEw0sYGuRHWnMApbzuzxSpUURJE7rSV3EBC2+IIp3x9PJm/DPxTEwFr1jifgC+Z1O5zWtjpY/oOupNiTs67DMikQiMawVKL10dQPrc7nOZYB9tnRh9K0yUWh+jwCdteEsiI+H9cpHm4QMy8JIZJzK6nG5CW/j90ai0U0qMz113VIBFI4NxeKxPt2C1ZhQN7BqwJ+XJWjhbXQ5PIzQohLJidnYFPtSPI+ggI3RVdSaF79QKOxLHp+8uFgfv9M9BAyzwgxQbK2OHSNjY7vM4FW3Kwj6/EQSZz3AD398J2zdthWAYah/UZt8HrcbiChDIpOClf0rYWZ6GkBD47BUQREbiUW+1Ofy0O6DnqSiGmgKIaAwgMZQt7HVBWxnZyc5raWNWieO8UQMJEmCjRs3wrXXXgvPPfcc7Nu3D2RRoplVYjJNwX7y8SdqVp3KARBJJtDUqacO+PwEeZo9WBsPoiRBfKL+vpjh3aG+bu7sw9CKVpyGQnD+J88tqy/f4oDQyPBs4YQQWH3GSpiamqoa3yIjtMi29tPOHBwdfBV/7w0uJ4XsjNmYLuCHMXU0HjOMjWGL9TndpLQqjzXQ3EwOzggur6g0FqvRasPRCEgFEXoCAWBrBCa4aeOJWSW1XuowBXWeg0gsahhcQxP9HoFA0d0q3OFILApHDh+BC8/7VEW90G0MR8bpSY+3WGZOZqFql7ZIuaDXT9DVNHLkZOmpdCZ9kZE1dQMrdDoJWpFqsfiqqmAFu3uoP600/D3d8NKBV+Dt/7wNG8+/oKa8xMbdEY1Gv+v1eoOFk9kRvHDR6GE07dUNbGk99eAbr4FHEMDrEWomAegucCO6Pd6a+BT7OdxMI+lxzUU0EGByY+QwqxtYbEvjHaoHH3wQbtrxFeDn+vrlZMbIAX1s0OuvqZJCSCiWmujr7e1dlT029V90H4s1jFht3cAiUCOxMPAcT93DzTffDLvv/9M8BpgoYDqL1f5oagJkBFbwVcUIadXLwwG3QMyKVY1uDMMxPwnH47fqma8LWEEQruZk8pdyC2DlPpKI01h2uS8AvN0OmzZvgl/c/UsafOJCeHjh8/5gb1UZ85IIqbnWtN8tEAzPzB5oEOheJKIAVyMyyYkFSB+b1IWVLmKn0/lFB8PdX1FJOw/hcBjOWX8m7H96ANo7OoDh3klh8T5AX++Kqgcc8i4usGCGpUtIjTuAmxxOJUARZejrCVadhWGi3hKjLpl7enq2yjP531aSQr1mia8ygnjo0CH47KWfoS6CFlMwBdWQMTnaWl8LjY6sd3W57uMYuI4zWF+ohtaR0BC0dbRTEkWSocdX3e/r9bO6gPULwtVQwRWggAicJEuwY8cO2LlrF40AtNyzKgUgly/clJ6avNuMjm45cP+65yE45+Mfg65lnTTzS6ZTgO7HMVdEwkvMq/v6qTGoI0/kDalU6qDGF0J/PdYqZYsFVq3DzLWwBosbfttttwH6lnw+T8HDVjr+fnhokIpAv2UgZNaCi5IgWRa3xDMZzXe9dFksLmymspV232xg8ZDCJAbfKDy0BvY/RQtFpcV3pMPnGEL2L18B0lyBCeV02Ow3hqLj97zXLZZWsszaRDyo4pkUeDwesEPlejC6heFoGDiWhaWnnQ4dLa3zOHJ2fstYRPvtREMWi69K2auRWrezBp2kKHcm0slvlyv2GFkC5Y0kEzTcw6ikWutmHLNDRaE3FYst2tbe6h0ZGZm9h69h6AYWeQZcHgsiy3ekVYgyGUslO/v7+naePH7iBq3X6Svpi7Hzq4deB8HrhZ4qyQkW02MTCcom6PMDmfOxxRU2DZhSEkPA+twe0mJ30APAioGV/NhcsdmszEutwPV1B6vKLckyRCbicN+998Lt3/keVa9YHq36GgL2qquu4l545lnJqlSzuABjFrC/++P9cMGFF9ALyxhnVxvqlzcBt0DJjBRiDAGLi1ldcYokE9iZlMw4wBgbj5kTBQmBVdtJxeAieLFEHLLZLA3Btm/fDo/tfZiSOJa0rwuFQoe0WqthV6AuUNye0bOoFlpseYfnOgf1frSsHl7qumixn7v8Cjjw4uzXN9lCHq/Nz772igKBQIB+zaPeghyL6+8kGLbYeXCXdRErSnrFr1+3x0v0frhcunn9az4ATw0MzP8Zo5rx8XH4xIazab8Oz4s12EXOztBPR9UhyfKfE5nUF7QYQzFN3cAiMzNe13KCo4LqJ5quLicxkh6X44sW/PyBlyEYDEI8HgdBEOCG7Ttg70MPwWzzfnbgZsbSSUMYGZpURlhGcHsUI9eIqllCcZVLEIRpTiZtei2nEj1a7IE3XgOn0wnZ6SysPqP/FFK9hRfTLVZl6Pf6CH48XO9A15Ir5CFRctnNjO8XtMqWk8TR9GSmcsu5BiOzLHZ+GZ/P1zMznR1tw8afzv+SQXN5lgFRlu5KJpNfLye7WZtXDRe8AzE6PlYXNnVNriac0+lcwjLslA1mwVJPWHUOgoiX5gjzTutG5pj+ZDI5W2aqMgS3h/5rE7PTauwmYJalJie15Kj23DJgSxcNBAKtJC/Su6448ABZ0rXMf/jw4agRBdxLO0nx6W2ER+kcu53/yHAk8roZvBoGrBnClnUNOj92LscDa7VmXYabfyOtUrjRfI0kERi7pqaOWWJcljBtNKjF63X7ujeJUmEPXtgrrmUosgI2uw1EUEZi8Xj1NrEJCvzfAWsCJqawaAJrCoynMmkC2wTWIgQsYtu02CawFiFgEdumxTaBtQgBi9g2LbYJrEUIWMS2abFNYC1CwCK2TYttAmsRAhax/R/LUX6ibXFikgAAAABJRU5ErkJggg==",
+	});
 
 	class BaseModule {
 	    get settingsScreen() {
@@ -634,9 +637,9 @@ var LLS = (function (exports) {
 	    get name() {
 	        return "UNKNOWN";
 	    }
-	    /*get icon(): string {
-	        return ICONS.BOUND_GIRL;
-	    }*/
+	    get icon() {
+	        return ICONS.BLUEBERRY;
+	    }
 	    get label() {
 	        return "UNDEFINED SETTING SCREEN";
 	    }
@@ -685,7 +688,7 @@ var LLS = (function (exports) {
 	        this.multipageStructure.forEach((s, ix, arr) => {
 	            if (ix != PreferencePageCurrent - 1) {
 	                s.forEach((setting) => {
-	                    if (setting.type == "text" || setting.type == "number" || setting.type == "colorpicker")
+	                    if (setting.type == "text" || setting.type == "number" || setting.type == "colorpicker" || setting.type == "dropdown")
 	                        this.ElementHide(setting.id);
 	                });
 	            }
@@ -702,6 +705,10 @@ var LLS = (function (exports) {
 	                    break;
 	                case "colorpicker":
 	                    ElementCreateInput(item.id, "text", item.setting(), "7");
+	                    break;
+	                case "dropdown":
+	                    ElementCreateDropdown(item.id, item.options, () => item.setSetting(ElementValue(item.id)));
+	                    this.ElementSetValue(item.id, item.setting());
 	                    break;
 	            }
 	        }));
@@ -727,8 +734,9 @@ var LLS = (function (exports) {
 	                case "checkbox":
 	                    this.DrawCheckbox(item.label, item.description, item.setting(), ix, item.disabled);
 	                    break;
-	                case "text": //runs "number"
+	                case "text": //runs "dropdown"
 	                case "number":
+	                case "dropdown":
 	                    this.ElementPosition(item.id, item.label, item.description, ix, item.disabled, item.type);
 	                    break;
 	                case "label":
@@ -741,6 +749,16 @@ var LLS = (function (exports) {
 	                    break;
 	                case "craftselect":
 	                    this.DrawCraftSelect(item.id, item.label, item.description, item.setting(), ix, item.disabled);
+	                    break;
+	                case "button":
+	                    let isHovering = MouseIn(this.getXPos(ix), this.getYPos(ix) - 32, 664, 64);
+	                    DrawTextFit(item.label, this.getXPos(ix), this.getYPos(ix), 600, isHovering ? "Red" : "Black", "Gray");
+	                    let prev = MainCanvas.textAlign;
+	                    MainCanvas.textAlign = "center";
+	                    DrawButton(this.getXPos(ix) + 464, this.getYPos(ix) - 32, 200, 64, item.buttonText, item.disabled ? "#CCCCCC" : "White", "", "", item.disabled);
+	                    MainCanvas.textAlign = prev;
+	                    if (isHovering)
+	                        this.Tooltip(item.description);
 	                    break;
 	            }
 	        });
@@ -784,6 +802,11 @@ var LLS = (function (exports) {
 	                        item.setSetting({ name: "", creator: 0 });
 	                    }
 	                    break;
+	                case "button":
+	                    if (MouseIn(this.getXPos(ix) + 464, this.getYPos(ix) - 32, 200, 64) && !item.disabled) {
+	                        item.setSetting(null);
+	                    }
+	                    break;
 	            }
 	        });
 	    }
@@ -797,6 +820,7 @@ var LLS = (function (exports) {
 	                    }
 	                    ElementRemove(item.id);
 	                case "text":
+	                case "dropdown":
 	                    item.setSetting(ElementValue(item.id));
 	                    ElementRemove(item.id);
 	                    break;
@@ -891,7 +915,7 @@ var LLS = (function (exports) {
 	        var _a;
 	        let isHovering = MouseIn(this.getXPos(order), this.getYPos(order) - 32, 600, 64);
 	        DrawTextFit(label, this.getXPos(order), this.getYPos(order), 600, isHovering ? "Red" : "Black", "Gray");
-	        if (type = "text")
+	        if ((type = "text"))
 	            ElementPosition(elementId, this.getXPos(order) + 540, this.getYPos(order), 300);
 	        else
 	            ElementPosition(elementId, this.getXPos(order) + 740, this.getYPos(order), 300);
@@ -902,6 +926,17 @@ var LLS = (function (exports) {
 	        }
 	        if (isHovering)
 	            this.Tooltip(description);
+	    }
+	    ElementSetValue(elementId, value) {
+	        let element = document.getElementById(elementId);
+	        if (!!element && value != null)
+	            element.value = value;
+	        if (element.localName == "div") {
+	            // Top of dropdown
+	            let displayDiv = element.childNodes[1];
+	            if (!!displayDiv)
+	                displayDiv.textContent = value;
+	        }
 	    }
 	    DrawLabel(name, description, order) {
 	        let isHovering = MouseIn(this.getXPos(order), this.getYPos(order) - 32, 600, 64);
@@ -1150,6 +1185,7 @@ var LLS = (function (exports) {
 	        PreferenceRegisterExtensionSetting({
 	            Identifier: "LLS",
 	            ButtonText: "LLS Settings",
+	            Image: ICONS.BLUEBERRY,
 	            load: () => {
 	                setSubscreen(new MainMenu(this));
 	            },
@@ -1465,7 +1501,27 @@ var LLS = (function (exports) {
 	                        sendLocal(`<b>- Lillys Little Scrips -</b><br>Visibility: ${text}<br>`);
 	                    }
 	                },
-	            },
+	            }, {
+	                Tag: "save",
+	                Description: ": Save chatlogs",
+	                Action: (args, msg, parsed) => {
+	                    let printHelp = true;
+	                    if (parsed.length != 0 && /^[0-9]+$/.test(parsed[0])) {
+	                        this.save.saveChatOfRoom(Number(parsed[0]));
+	                        printHelp = false;
+	                    }
+	                    if (printHelp) {
+	                        let text = "<br><b>/lls save [number]</b>: Saves the chat log of the [number]th room";
+	                        sendLocal(`<b>- Lillys Little Scrips -</b><br>Saving: ${text}<br>`);
+	                    }
+	                }
+	            }, {
+	                Tag: "savebeeps",
+	                Description: ": Save beeps",
+	                Action: (args, msg, parsed) => {
+	                    this.save.saveBeepsToFile();
+	                }
+	            }
 	        ];
 	    }
 	    get cards() {
@@ -1473,6 +1529,9 @@ var LLS = (function (exports) {
 	    }
 	    get misc() {
 	        return getModule("MiscModule");
+	    }
+	    get save() {
+	        return getModule("SavingModule");
 	    }
 	    get orderedCommands() {
 	        let helpCommand = this.getSubcommand("help");
@@ -1757,7 +1816,7 @@ var LLS = (function (exports) {
 	        });
 	        // Screenshot Cross Origin
 	        patchFunction("DrawRoomBackground", {
-	            'const img = URL !== "" ? DrawGetImage(URL) : undefined;': 'const img = URL !== "" ? DrawGetImage(URL) : undefined;\n\t\timg.crossOrigin = "anonymous";',
+	            'const img = URL !== "" ? DrawGetImage(URL) : undefined;': 'const img = URL !== "" ? DrawGetImage(URL) : undefined;\n\t\tif(img) img.crossOrigin = "anonymous";',
 	        });
 	    }
 	    characterToggleVisibility(mode, C) {
@@ -2915,6 +2974,409 @@ var LLS = (function (exports) {
 	    }
 	}
 
+	class GuiSavings extends GuiSubscreen {
+	    get name() {
+	        return "Saves";
+	    }
+	    get icon() {
+	        return "";
+	    }
+	    get save() {
+	        return getModule("SavingModule");
+	    }
+	    get settings() {
+	        return super.settings;
+	    }
+	    get multipageStructure() {
+	        return [
+	            [
+	                {
+	                    type: "checkbox",
+	                    id: "saveasCSV",
+	                    label: "Save as CSV",
+	                    description: "If enabled, nay logs will be saved as a CSV file instead of a text file.",
+	                    setting: () => this.settings.csv,
+	                    setSetting: (val) => {
+	                        this.settings.csv = val;
+	                    }
+	                },
+	                {
+	                    type: "dropdown",
+	                    options: this.save.getAllRoomNames(),
+	                    id: "roomSelect",
+	                    label: "Selected Room",
+	                    description: "Enable saving of chat messages. If set to 'Only in rooms', saving will only occur in rooms where the user is present.",
+	                    setting: () => "Off",
+	                    setSetting: (val) => {
+	                        this.save.selectedRoom = this.save.getAllRoomNames().indexOf(val);
+	                    },
+	                },
+	                {
+	                    type: "button",
+	                    id: "savechat",
+	                    label: "Save chat",
+	                    description: "Save the chat log of the selceted room.",
+	                    setSetting: (val) => {
+	                        this.save.settingChatRoomSave();
+	                    },
+	                    buttonText: "Save"
+	                },
+	                {
+	                    type: "checkbox",
+	                    id: "sortBeepsByMemberNumber",
+	                    label: "Sort beeps by members",
+	                    description: "If enabled, beeps will be sorted by membernumbers.",
+	                    setting: () => this.settings.sortBeepsByMemberNumber,
+	                    setSetting: (val) => {
+	                        this.settings.sortBeepsByMemberNumber = val;
+	                    }
+	                },
+	                {
+	                    type: "button",
+	                    id: "savebeeps",
+	                    label: "Save beeps",
+	                    description: "Save all beeps of the current session to a file.",
+	                    setSetting: (val) => {
+	                        this.save.saveBeepsToFile();
+	                    },
+	                    buttonText: "Save"
+	                },
+	                {
+	                    type: "text",
+	                    id: "delimitor",
+	                    label: "Delimitor",
+	                    description: "The delimitor used to separate values in the CSV file.",
+	                    setting: () => this.settings.delimitor,
+	                    setSetting: (val) => {
+	                        this.settings.delimitor = val;
+	                    },
+	                },
+	            ],
+	        ];
+	    }
+	    Run() {
+	        super.Run();
+	    }
+	    Click() {
+	        super.Click();
+	    }
+	    Exit() {
+	        super.Exit();
+	    }
+	    Load() {
+	        var _a;
+	        // Load up module settings to ensure defaults..
+	        (_a = getModule("MiscModule")) === null || _a === void 0 ? void 0 : _a.settings;
+	        super.Load();
+	    }
+	}
+
+	class SavingModule extends BaseModule {
+	    constructor() {
+	        super(...arguments);
+	        this.selectedRoom = 0;
+	    }
+	    get settings() {
+	        return super.settings;
+	    }
+	    get defaultSettings() {
+	        return {
+	            csv: false, // Default to false, can be changed in settings
+	            sortBeepsByMemberNumber: true, // Default to false, can be changed in settings
+	            delimitor: ";", // Default to semicolon, can be changed in settings
+	        };
+	    }
+	    get settingsScreen() {
+	        return GuiSavings;
+	    }
+	    Safeword() { }
+	    Load() { }
+	    Unload() { }
+	    saveChatOfRoom(roomId) {
+	        const messages = this.getAllMessagesForRooms();
+	        console.log(messages);
+	        if (!messages) {
+	            console.warn("No messages found for room:", roomId);
+	            return;
+	        }
+	        if (roomId < 0 || roomId > messages.length) {
+	            console.warn("Invalid room ID:", roomId);
+	            return;
+	        }
+	        this.exportMessagesToFile(messages[roomId]);
+	    }
+	    settingChatRoomSave() {
+	        this.saveChatOfRoom(this.selectedRoom);
+	    }
+	    getAllRoomNames() {
+	        var _a;
+	        const container = document.querySelector("#TextAreaChatLog");
+	        if (!container) {
+	            return [];
+	        }
+	        const separators = Array.from(container.querySelectorAll(".chat-room-sep"));
+	        const roomNames = [];
+	        for (const sep of separators) {
+	            const roomNameElement = sep.querySelector(".chat-room-sep-header");
+	            if (roomNameElement) {
+	                const header = (_a = roomNameElement.textContent) === null || _a === void 0 ? void 0 : _a.split("-");
+	                if (header && header.length > 0) {
+	                    const roomName = header[header.length - 1].trim();
+	                    roomNames.push(roomName);
+	                }
+	            }
+	        }
+	        return roomNames;
+	    }
+	    async exportMessagesToFile(messages) {
+	        const lines = [];
+	        let format = "txt"; // Default format is txt
+	        if (this.settings.csv) {
+	            format = "csv";
+	        }
+	        const delimitor = this.settings.delimitor || ";";
+	        if (format === 'csv') {
+	            // Add CSV header
+	            lines.push(`Time${delimitor}Sender${delimitor}UserID${delimitor}MessageType${delimitor}Content`);
+	        }
+	        for (const message of messages) {
+	            const messageType = this.getMessageType(message) || "Unknown Type";
+	            const time = this.getMessageTime(message) || "Unknown Time";
+	            const sender = this.getSenderName(message) || "Unknown Sender";
+	            const userId = this.getSenderId(message) || "Unknown ID";
+	            const content = this.getMessageContent(message) || "";
+	            const escapeCSV = (text) => `"${text.replace(/"/g, '""')}"`; // Handle quotes inside fields
+	            switch (messageType) {
+	                case "Chat": {
+	                    if (format === "csv") {
+	                        lines.push([escapeCSV(time), escapeCSV(sender), escapeCSV(userId), escapeCSV("Chat"), escapeCSV(content)].join(delimitor));
+	                    }
+	                    else {
+	                        lines.push(`${time} ${sender} (${userId}): ${content}`);
+	                    }
+	                    break;
+	                }
+	                case "Emote": {
+	                    if (format === "csv") {
+	                        lines.push([
+	                            escapeCSV(time),
+	                            "", // no sender
+	                            escapeCSV(userId),
+	                            escapeCSV("Emote"),
+	                            escapeCSV(content),
+	                        ].join(delimitor));
+	                    }
+	                    else {
+	                        lines.push(`${time} (${userId}): ${content}`);
+	                    }
+	                    break;
+	                }
+	                case "Activity":
+	                case "Action": {
+	                    const action = this.getOwnTextContent(message);
+	                    if (action === "(Type /help for a list of commands)") {
+	                        break; // Skip help message
+	                    }
+	                    if (format === "csv") {
+	                        lines.push([
+	                            escapeCSV(time),
+	                            "", // no sender
+	                            escapeCSV(userId),
+	                            escapeCSV(messageType),
+	                            escapeCSV(action),
+	                        ].join(delimitor));
+	                    }
+	                    else {
+	                        lines.push(`${time} (${userId}): ${action}`);
+	                    }
+	                    break;
+	                }
+	            }
+	        }
+	        const fileContent = lines.join("\n");
+	        const extension = format === "csv" ? "csv" : "txt";
+	        const mimeType = format === "csv" ? "text/csv" : "text/plain";
+	        this.saveFile(`chat_export.${extension}`, fileContent, mimeType);
+	    }
+	    getAllMessagesForRooms() {
+	        const container = document.querySelector("#TextAreaChatLog");
+	        if (!container) {
+	            return;
+	        }
+	        const separators = Array.from(container.querySelectorAll(".chat-room-sep"));
+	        const results = [];
+	        for (let i = 0; i < separators.length; i++) {
+	            const start = separators[i];
+	            const end = separators[i + 1] || null; // null if no next separator (i.e., last one)
+	            const elementsBetween = [];
+	            let node = start.nextElementSibling;
+	            while (node && node !== end) {
+	                elementsBetween.push(node);
+	                node = node.nextElementSibling;
+	            }
+	            results.push(elementsBetween);
+	        }
+	        return results; // Array of arrays: elements between each sep, and after last sep
+	    }
+	    saveBeepsToFile() {
+	        var _a;
+	        const beeps = this.settings.sortBeepsByMemberNumber
+	            ? this.sortBeepsByMemberNumber(FriendListBeepLog)
+	            : FriendListBeepLog;
+	        if (!beeps || beeps.length === 0) {
+	            console.warn("No beeps found to save.");
+	            return;
+	        }
+	        const format = this.settings.csv ? "csv" : "txt";
+	        const delimiter = this.settings.delimitor || ";";
+	        const lines = [];
+	        let lastMemberNumber = null;
+	        let otherName = null;
+	        const escapeCSV = (value) => `"${value.replace(/"/g, '""')}"`;
+	        if (format === 'csv') {
+	            lines.push([
+	                'Time',
+	                'Sender',
+	                'SenderID',
+	                'Recipient',
+	                'RecipientID',
+	                'Message'
+	            ].join(delimiter));
+	        }
+	        for (const beep of beeps) {
+	            const time = beep.Time ? new Date(beep.Time).toLocaleString() : "Unknown Time";
+	            const otherNumber = beep.MemberNumber || null;
+	            const rawContent = ((_a = beep.Message) === null || _a === void 0 ? void 0 : _a.replace(/\n\n\uF124\{.*?"messageType":"Message".*?\}/g, "")) || "";
+	            const sent = beep.Sent || false;
+	            if (lastMemberNumber == null || otherNumber !== lastMemberNumber) {
+	                otherName = beep.MemberName || "Unknown Sender";
+	                if (format === 'txt' && lastMemberNumber !== null) {
+	                    lines.push(""); // Only insert blank line in TXT format
+	                }
+	            }
+	            lastMemberNumber = otherNumber;
+	            const senderName = sent ? Player.Name : otherName;
+	            const senderId = sent ? Player.MemberNumber : otherNumber;
+	            const recipientName = sent ? otherName : Player.Name;
+	            const recipientId = sent ? otherNumber : Player.MemberNumber;
+	            if (format === 'csv') {
+	                lines.push([
+	                    escapeCSV(time),
+	                    escapeCSV(senderName || "Unknown"),
+	                    escapeCSV(String(senderId !== null && senderId !== void 0 ? senderId : "Unknown")),
+	                    escapeCSV(recipientName || "Unknown"),
+	                    escapeCSV(String(recipientId !== null && recipientId !== void 0 ? recipientId : "Unknown")),
+	                    escapeCSV(rawContent)
+	                ].join(delimiter));
+	            }
+	            else {
+	                const beepLine = `${time} ${senderName} (${senderId}) -> ${recipientName} (${recipientId}): ${rawContent}`;
+	                lines.push(beepLine);
+	            }
+	        }
+	        const extension = format === 'csv' ? 'csv' : 'txt';
+	        const mimeType = format === 'csv' ? 'text/csv' : 'text/plain';
+	        const fileContent = lines.join("\n");
+	        this.saveFile(`beep_export.${extension}`, fileContent, mimeType);
+	    }
+	    sortBeepsByMemberNumber(beeps) {
+	        return beeps.sort((a, b) => {
+	            const aNumber = a.MemberNumber ? parseInt(a.MemberNumber, 10) : 0;
+	            const bNumber = b.MemberNumber ? parseInt(b.MemberNumber, 10) : 0;
+	            return aNumber - bNumber;
+	        });
+	    }
+	    async saveFile(filename, content, mimeType = "text/plain") {
+	        // Check for File System Access API
+	        const useFSAccess = "showSaveFilePicker" in window;
+	        if (useFSAccess) {
+	            try {
+	                const opts = {
+	                    suggestedName: filename,
+	                    types: [
+	                        {
+	                            description: mimeType,
+	                            accept: { [mimeType]: [`.${filename.split(".").pop()}`] },
+	                        },
+	                    ],
+	                };
+	                // @ts-ignore - showSaveFilePicker is not yet in official TS typings
+	                const handle = await window.showSaveFilePicker(opts);
+	                const writable = await handle.createWritable();
+	                await writable.write(content);
+	                await writable.close();
+	                return;
+	            }
+	            catch (error) {
+	                if (error instanceof Error && error.name === "AbortError") {
+	                    console.warn("File save operation was aborted.");
+	                    return;
+	                }
+	                console.warn("File System Access API error, falling back to download:", error);
+	            }
+	        }
+	        // Fallback: Download automatically
+	        const blob = new Blob([content], { type: mimeType });
+	        const url = URL.createObjectURL(blob);
+	        const a = document.createElement("a");
+	        a.href = url;
+	        a.download = filename;
+	        document.body.appendChild(a);
+	        a.click();
+	        document.body.removeChild(a);
+	        URL.revokeObjectURL(url);
+	    }
+	    getMessageType(message) {
+	        if (message) {
+	            for (const className of Array.from(message.classList)) {
+	                const match = className.match(/^ChatMessage(.+)$/);
+	                if (match) {
+	                    return match[1];
+	                }
+	            }
+	        }
+	        return null;
+	    }
+	    getOwnTextContent(element) {
+	        let text = "";
+	        for (const node of Array.from(element.childNodes)) {
+	            if (node.nodeType === Node.TEXT_NODE) {
+	                text += node.textContent;
+	            }
+	        }
+	        return text.trim();
+	    }
+	    getMessageContent(message) {
+	        if (message) {
+	            const contents = message.querySelectorAll(".chat-room-message-content");
+	            const content = contents[contents.length - 1];
+	            return content ? content.textContent : null;
+	        }
+	        return null;
+	    }
+	    getSenderName(message) {
+	        if (message) {
+	            const sender = message.querySelector(".ChatMessageName");
+	            return sender ? sender.textContent : null;
+	        }
+	        return null;
+	    }
+	    getSenderId(message) {
+	        if (message) {
+	            const sender = message.querySelector(".chat-room-sender");
+	            return sender ? sender.textContent : null;
+	        }
+	        return null;
+	    }
+	    getMessageTime(message) {
+	        if (message) {
+	            const time = message.querySelector(".chat-room-time");
+	            return time ? time.textContent : null;
+	        }
+	        return null;
+	    }
+	}
+
 	function initWait() {
 	    console.debug("LLS: Init wait");
 	    if (CurrentScreen == null || CurrentScreen === "Login") {
@@ -2986,6 +3448,7 @@ var LLS = (function (exports) {
 	    registerModule(new MiscModule());
 	    registerModule(new ArtifactModule());
 	    registerModule(new RemoteUiModule());
+	    registerModule(new SavingModule());
 	    for (const m of modules()) {
 	        m.init();
 	    }

@@ -9,6 +9,7 @@ import { CraftsModule } from "Modules/crafts";
 import { MiscModule } from "Modules/misc";
 import { ArtifactModule } from "Modules/artifacts";
 import { RemoteUiModule } from "Modules/remoteUi";
+import { SavingModule } from "Modules/saving";
 
 function initWait() {
 	console.debug("LLS: Init wait");
@@ -93,6 +94,7 @@ function initModules(): boolean {
 	registerModule(new MiscModule());
 	registerModule(new ArtifactModule());
 	registerModule(new RemoteUiModule());
+	registerModule(new SavingModule());
 
 	for (const m of modules()) {
 		m.init();

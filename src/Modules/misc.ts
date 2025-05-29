@@ -60,7 +60,7 @@ export class MiscModule extends BaseModule {
 
 		// Screenshot Cross Origin
 		patchFunction("DrawRoomBackground", {
-			'const img = URL !== "" ? DrawGetImage(URL) : undefined;': 'const img = URL !== "" ? DrawGetImage(URL) : undefined;\n\t\timg.crossOrigin = "anonymous";',
+			'const img = URL !== "" ? DrawGetImage(URL) : undefined;': 'const img = URL !== "" ? DrawGetImage(URL) : undefined;\n\t\tif(img) img.crossOrigin = "anonymous";',
 		});
 	}
 
