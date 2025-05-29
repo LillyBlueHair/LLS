@@ -137,11 +137,18 @@ export class SavingModule extends BaseModule {
             }
         }
 
+        const roomName = this.getAllRoomNames()[this.selectedRoom] || null;
+
         const fileContent = lines.join("\n");
         const extension = format === "csv" ? "csv" : "txt";
         const mimeType = format === "csv" ? "text/csv" : "text/plain";
+        console.log(roomName)
+        const filename = roomName
+            ? `chat_export_${roomName.replace(/[^a-z0-9]/gi, "").toLowerCase()}.${extension}`
+            : `chat_export.${extension}`;
 
-        this.saveFile(`chat_export.${extension}`, fileContent, mimeType);
+
+        this.saveFile(filename, fileContent, mimeType);
     }
 
     getAllMessagesForRooms(): Element[][] | undefined {

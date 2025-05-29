@@ -2,7 +2,7 @@ import { BaseModule } from "base";
 import { RemoteMainMenu } from "Settings/Remote/mainmenu";
 import { RemoteGuiSubscreen } from "Settings/Remote/remoteBase";
 import { ModuleCategory } from "Settings/settingDefinitions";
-import { getChatroomCharacter, hookFunction, removeAllHooksByModule } from "../utils";
+import { getChatroomCharacter, hookFunction, ICONS, removeAllHooksByModule } from "../utils";
 
 // Remote UI Module to handle configuration on other characters
 // Can be used to "program" another character's hypnosis, collar, etc.
@@ -69,7 +69,7 @@ export class RemoteUiModule extends BaseModule {
             if (!!C && this.characterHasMod(C as OtherCharacter) && !C.IsPlayer()) {
                 const playerHasAccessToCharacter = this.playerHasAccessToCharacter(C as OtherCharacter);
                 DrawButton(450, 60, 60, 60, "", (playerHasAccessToCharacter && !this.playerIsRestrained) ? "White" : "#ddd", "", playerHasAccessToCharacter ? (this.playerIsRestrained ? "Cannot access while restrained" : "LLS Remote Settings") : "Needs BC item permission", !playerHasAccessToCharacter || this.playerIsRestrained);
-                //DrawImageResize(ICONS.REMOTE, 95, 65, 50, 50);
+                DrawImageResize(ICONS.REMOTE, 95, 65, 50, 50);
             }
 		}, ModuleCategory.RemoteUi);
 
