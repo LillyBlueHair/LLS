@@ -5,6 +5,7 @@ import { MainMenu } from "./mainmenu";
 import { SETTING_NAME_PREFIX, Subscreen, setSubscreen } from "./settingDefinitions";
 import { modules } from "modules";
 import { GlobalSettingsModel } from "./Models/base";
+import { ICONS } from "utils";
 
 export class GUI extends BaseModule {
     static instance: GUI | null = null;
@@ -93,6 +94,7 @@ export class GUI extends BaseModule {
         PreferenceRegisterExtensionSetting({
             Identifier: "LLS",
             ButtonText: "LLS Settings",
+            Image: ICONS.BLUEBERRY,
             load: () => {
                 setSubscreen(new MainMenu(this));
             },

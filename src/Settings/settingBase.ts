@@ -1,18 +1,20 @@
-import { settingsSave } from "utils";
+import { ICONS, settingsSave } from "utils";
 import { BaseSettingsModel, CraftModel } from "./Models/base";
 import { SETTING_FUNC_NAMES, SETTING_FUNC_PREFIX, SETTING_NAME_PREFIX, setSubscreen } from "./settingDefinitions";
 import { BaseModule } from "base";
 import { DrawTooltip, GUI } from "./settingUtils";
 
 export interface Setting {
-    type: "checkbox" | "text" | "number" | "label" | "colorpicker" | "craftselect" | "null"; // "null" is a placeholder for a blank line
+    type: "checkbox" | "text" | "number" | "label" | "colorpicker" | "craftselect" | "null" | "dropdown" | "button"; // "null" is a placeholder for a blank line
     id: string;
     disabled: boolean;
     label: string;
     description: string;
+    options: string[];
     setting(): any;
     setSetting(val: any): void;
-	slot: string;
+    slot: string;
+    buttonText: string;
 }
 
 export abstract class GuiSubscreen {
@@ -45,9 +47,9 @@ export abstract class GuiSubscreen {
         return "UNKNOWN";
     }
 
-    /*get icon(): string {
-		return ICONS.BOUND_GIRL;
-	}*/
+    get icon(): string {
+		return ICONS.BLUEBERRY;
+	}
 
     get label(): string {
         return "UNDEFINED SETTING SCREEN";
@@ -110,7 +112,8 @@ export abstract class GuiSubscreen {
         this.multipageStructure.forEach((s, ix, arr) => {
             if (ix != PreferencePageCurrent - 1) {
                 s.forEach((setting) => {
-                    if (setting.type == "text" || setting.type == "number" || setting.type == "colorpicker") this.ElementHide(setting.id);
+                    if (setting.type == "text" || setting.type == "number" || setting.type == "colorpicker" || setting.type == "dropdown")
+                        this.ElementHide(setting.id);
                 });
             }
         });
@@ -128,6 +131,10 @@ export abstract class GuiSubscreen {
                         break;
                     case "colorpicker":
                         ElementCreateInput(item.id, "text", item.setting(), "7");
+                        break;
+                    case "dropdown":
+                        ElementCreateDropdown(item.id, item.options, () => item.setSetting(ElementValue(item.id)));
+                        this.ElementSetValue(item.id, item.setting());
                         break;
                 }
             })
@@ -160,8 +167,9 @@ export abstract class GuiSubscreen {
                 case "checkbox":
                     this.DrawCheckbox(item.label, item.description, item.setting(), ix, item.disabled);
                     break;
-                case "text": //runs "number"
+                case "text": //runs "dropdown"
                 case "number":
+                case "dropdown":
                     this.ElementPosition(item.id, item.label, item.description, ix, item.disabled, item.type);
                     break;
                 case "label":
@@ -174,6 +182,27 @@ export abstract class GuiSubscreen {
                     break;
                 case "craftselect":
                     this.DrawCraftSelect(item.id, item.label, item.description, item.setting(), ix, item.disabled);
+                    break;
+                case "button":
+                    let isHovering = MouseIn(this.getXPos(ix), this.getYPos(ix) - 32, 664, 64);
+                    DrawTextFit(item.label, this.getXPos(ix), this.getYPos(ix), 600, isHovering ? "Red" : "Black", "Gray");
+
+                    let prev = MainCanvas.textAlign;
+                    MainCanvas.textAlign = "center";
+                    DrawButton(
+                        this.getXPos(ix) + 464,
+                        this.getYPos(ix) - 32,
+                        200,
+                        64,
+                        item.buttonText,
+                        item.disabled ? "#CCCCCC" : "White",
+                        "",
+                        "",
+                        item.disabled
+                    );
+                    MainCanvas.textAlign = prev;
+                    if (isHovering) this.Tooltip(item.description);
+
                     break;
             }
         });
@@ -204,17 +233,22 @@ export abstract class GuiSubscreen {
                         }
                     }
                     break;
-				case "craftselect":
-					if (MouseIn(this.getXPos(ix) + 464, this.getYPos(ix) - 32, 200, 64) && !item.disabled) {
-						let craft = InventoryGet(Player, item.slot);
-						if (!craft || !craft.Craft) break;
-						let name = craft.Craft.Name;
-						let creator = craft.Craft.MemberNumber;
-						item.setSetting(<CraftModel>{name: name, creator: creator});
-					}else if (MouseIn(this.getXPos(ix) + 464, this.getYPos(ix) + 40, 200, 64) && !item.disabled) {
-						item.setSetting(<CraftModel>{name: "", creator: 0});
-					}
-					break;
+                case "craftselect":
+                    if (MouseIn(this.getXPos(ix) + 464, this.getYPos(ix) - 32, 200, 64) && !item.disabled) {
+                        let craft = InventoryGet(Player, item.slot);
+                        if (!craft || !craft.Craft) break;
+                        let name = craft.Craft.Name;
+                        let creator = craft.Craft.MemberNumber;
+                        item.setSetting(<CraftModel>{ name: name, creator: creator });
+                    } else if (MouseIn(this.getXPos(ix) + 464, this.getYPos(ix) + 40, 200, 64) && !item.disabled) {
+                        item.setSetting(<CraftModel>{ name: "", creator: 0 });
+                    }
+                    break;
+                case "button":
+                    if (MouseIn(this.getXPos(ix) + 464, this.getYPos(ix) - 32, 200, 64) && !item.disabled) {
+                        item.setSetting(null);
+                    }
+                    break;
             }
         });
     }
@@ -230,6 +264,7 @@ export abstract class GuiSubscreen {
                         }
                         ElementRemove(item.id);
                     case "text":
+                    case "dropdown":
                         item.setSetting(ElementValue(item.id));
                         ElementRemove(item.id);
                         break;
@@ -305,50 +340,18 @@ export abstract class GuiSubscreen {
         let prev = MainCanvas.textAlign;
 
         MainCanvas.textAlign = "left";
-        DrawText("Update "+name+":", this.getXPos(order), this.getYPos(order), disabled ? "Gray" : "Black", "Gray");
+        DrawText("Update " + name + ":", this.getXPos(order), this.getYPos(order), disabled ? "Gray" : "Black", "Gray");
         MainCanvas.textAlign = "center";
-        DrawButton(
-            this.getXPos(order) + 464,
-            this.getYPos(order) - 32,
-            200,
-            64,
-            "Update",
-            disabled ? "#CCCCCC" : "White",
-            undefined,
-            "",
-            disabled
-        );
-        if (MouseIn(this.getXPos(order), this.getYPos(order) - 32, 600, 64)) this.Tooltip("Sets the "+name+" to the one currently worn");
-        DrawButton(
-            this.getXPos(order) + 464,
-            this.getYPos(order) + 40,
-            200,
-            64,
-            "Clear",
-            disabled ? "#CCCCCC" : "White",
-            undefined,
-            "",
-            disabled
-        );
-        if (MouseIn(this.getXPos(order), this.getYPos(order) + 40, 600, 64)) this.Tooltip("Set "+name+" to default");
+        DrawButton(this.getXPos(order) + 464, this.getYPos(order) - 32, 200, 64, "Update", disabled ? "#CCCCCC" : "White", undefined, "", disabled);
+        if (MouseIn(this.getXPos(order), this.getYPos(order) - 32, 600, 64)) this.Tooltip("Sets the " + name + " to the one currently worn");
+        DrawButton(this.getXPos(order) + 464, this.getYPos(order) + 40, 200, 64, "Clear", disabled ? "#CCCCCC" : "White", undefined, "", disabled);
+        if (MouseIn(this.getXPos(order), this.getYPos(order) + 40, 600, 64)) this.Tooltip("Set " + name + " to default");
 
         MainCanvas.textAlign = "left";
         if (!!setting) {
-            DrawText(
-                "Current Name: " + setting.name,
-                this.getXPos(order),
-                this.getYPos(order) + 50,
-                "Gray",
-                "Gray"
-            );
+            DrawText("Current Name: " + setting.name, this.getXPos(order), this.getYPos(order) + 50, "Gray", "Gray");
             if (!!setting.creator && setting.creator > 0)
-                DrawText(
-                    "Current Crafter: " + setting.creator,
-                    this.getXPos(order),
-                    this.getYPos(order) + 100,
-                    "Gray",
-                    "Gray"
-                );
+                DrawText("Current Crafter: " + setting.creator, this.getXPos(order), this.getYPos(order) + 100, "Gray", "Gray");
         }
         MainCanvas.textAlign = prev;
     }
@@ -360,13 +363,23 @@ export abstract class GuiSubscreen {
     ElementPosition(elementId: string, label: string, description: string, order: number, disabled: boolean = false, type: string = "") {
         let isHovering = MouseIn(this.getXPos(order), this.getYPos(order) - 32, 600, 64);
         DrawTextFit(label, this.getXPos(order), this.getYPos(order), 600, isHovering ? "Red" : "Black", "Gray");
-        if(type="text") ElementPosition(elementId, this.getXPos(order) + 540, this.getYPos(order), 300);
+        if ((type = "text")) ElementPosition(elementId, this.getXPos(order) + 540, this.getYPos(order), 300);
         else ElementPosition(elementId, this.getXPos(order) + 740, this.getYPos(order), 300);
         if (disabled) ElementSetAttribute(elementId, "disabled", "true");
         else {
             document.getElementById(elementId)?.removeAttribute("disabled");
         }
         if (isHovering) this.Tooltip(description);
+    }
+
+    ElementSetValue(elementId: string, value: any) {
+        let element = document.getElementById(elementId) as HTMLInputElement;
+        if (!!element && value != null) element.value = value;
+        if (element.localName == "div") {
+            // Top of dropdown
+            let displayDiv = (element as Element).childNodes[1];
+            if (!!displayDiv) displayDiv.textContent = value;
+        }
     }
 
     DrawLabel(name: string, description: string, order: number) {

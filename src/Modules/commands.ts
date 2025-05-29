@@ -4,6 +4,7 @@ import { ModuleCategory } from "Settings/settingDefinitions";
 import { getCharacterNumber, getChatroomCharacter, sendLocal, removeAllHooksByModule, settingsSave } from "../utils";
 import { CardsModule } from "./cards";
 import { MiscModule } from "./misc";
+import { SavingModule } from "./saving";
 
 // Remote UI Module to handle configuration on other characters
 // Can be used to "program" another character's hypnosis, collar, etc.
@@ -14,6 +15,10 @@ export class CommandModule extends BaseModule {
     }
     get misc(): MiscModule {
         return getModule<MiscModule>("MiscModule");
+    }
+
+    get save(): SavingModule {
+        return getModule<SavingModule>("SavingModule");
     }
 
     llsCommands: ICommand[] = [
@@ -123,7 +128,28 @@ export class CommandModule extends BaseModule {
                     sendLocal(`<b>- Lillys Little Scrips -</b><br>Visibility: ${text}<br>`);
                 }
             },
-        },
+        },{
+            Tag: "save",
+            Description: ": Save chatlogs",
+            Action: (args, msg, parsed) => {
+                let printHelp = true;
+                if (parsed.length != 0 && /^[0-9]+$/.test(parsed[0]) ) {
+                    this.save.saveChatOfRoom(Number(parsed[0]))
+                    printHelp = false;
+                } 
+                if (printHelp) {
+                    let text: string =
+                        "<br><b>/lls save [number]</b>: Saves the chat log of the [number]th room";
+                    sendLocal(`<b>- Lillys Little Scrips -</b><br>Saving: ${text}<br>`);
+                }
+            }
+        },{
+            Tag: "savebeeps",
+            Description: ": Save beeps",
+            Action: (args, msg, parsed) => {
+                this.save.saveBeepsToFile();
+            }
+        }
     ];
 
     get orderedCommands(): ICommand[] {

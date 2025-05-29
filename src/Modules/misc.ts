@@ -1,6 +1,6 @@
 import { MiscSettingsModel } from "Settings/Models/base";
 import { BaseModule } from "base";
-import { hookFunction } from "utils";
+import { hookFunction, patchFunction } from "utils";
 
 export class MiscModule extends BaseModule {
 	get settings(): MiscSettingsModel {
@@ -56,6 +56,11 @@ export class MiscModule extends BaseModule {
 					}
 				}
 			}
+		});
+
+		// Screenshot Cross Origin
+		patchFunction("DrawRoomBackground", {
+			'const img = URL !== "" ? DrawGetImage(URL) : undefined;': 'const img = URL !== "" ? DrawGetImage(URL) : undefined;\n\t\tif(img) img.crossOrigin = "anonymous";',
 		});
 	}
 
