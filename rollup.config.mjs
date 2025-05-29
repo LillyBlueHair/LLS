@@ -9,7 +9,7 @@ export default {
 	input: "src/main.ts",
 	output: {
 		name: "LLS",
-		file: "bundle.js",
+		file: "dist/bundle.js",
 		format: "iife",
 		sourcemap: true,
 		banner: `// LLS: Lillys Little Scripts
