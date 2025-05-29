@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Lillys Little Scripts",
   "main": "dist/bundle.js",
+  "type": "module",
   "scripts": {
     "start": "rollup -c",
     "build": "rollup --config",
