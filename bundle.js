@@ -3095,7 +3095,6 @@ var LLS = (function (exports) {
 	    Unload() { }
 	    saveChatOfRoom(roomId) {
 	        const messages = this.getAllMessagesForRooms();
-	        console.log(messages);
 	        if (!messages) {
 	            console.warn("No messages found for room:", roomId);
 	            return;
@@ -3136,7 +3135,7 @@ var LLS = (function (exports) {
 	            format = "csv";
 	        }
 	        const delimitor = this.settings.delimitor || ";";
-	        if (format === 'csv') {
+	        if (format === "csv") {
 	            // Add CSV header
 	            lines.push(`Time${delimitor}Sender${delimitor}UserID${delimitor}MessageType${delimitor}Content`);
 	        }
@@ -3157,6 +3156,27 @@ var LLS = (function (exports) {
 	                    }
 	                    break;
 	                }
+	                case "Whisper":
+	                    let sent = Player.MemberNumber == Number(userId);
+	                    console.log(content, sender, userId);
+	                    if (format === "csv") {
+	                        lines.push([
+	                            escapeCSV(time),
+	                            escapeCSV(sender),
+	                            escapeCSV(userId),
+	                            escapeCSV("Whisper"),
+	                            escapeCSV(`${sent ? "to" : "from"} ${sender}: ` + content),
+	                        ].join(delimitor));
+	                    }
+	                    else {
+	                        if (sent) {
+	                            lines.push(`${time} (You -> ${sender} (${userId})): ${content}`);
+	                        }
+	                        else {
+	                            lines.push(`${time} (${sender} -> You): ${content}`);
+	                        }
+	                    }
+	                    break;
 	                case "Emote": {
 	                    if (format === "csv") {
 	                        lines.push([
@@ -3173,7 +3193,7 @@ var LLS = (function (exports) {
 	                    break;
 	                }
 	                case "Activity":
-	                case "Action": {
+	                case "Action":
 	                    const action = this.getOwnTextContent(message);
 	                    if (action === "(Type /help for a list of commands)") {
 	                        break; // Skip help message
@@ -3191,17 +3211,13 @@ var LLS = (function (exports) {
 	                        lines.push(`${time} (${userId}): ${action}`);
 	                    }
 	                    break;
-	                }
 	            }
 	        }
 	        const roomName = this.getAllRoomNames()[this.selectedRoom] || null;
 	        const fileContent = lines.join("\n");
 	        const extension = format === "csv" ? "csv" : "txt";
 	        const mimeType = format === "csv" ? "text/csv" : "text/plain";
-	        console.log(roomName);
-	        const filename = roomName
-	            ? `chat_export_${roomName.replace(/[^a-z0-9]/gi, "").toLowerCase()}.${extension}`
-	            : `chat_export.${extension}`;
+	        const filename = roomName ? `chat_export_${roomName.replace(/[^a-z0-9]/gi, "").toLowerCase()}.${extension}` : `chat_export.${extension}`;
 	        this.saveFile(filename, fileContent, mimeType);
 	    }
 	    getAllMessagesForRooms() {
@@ -3226,9 +3242,7 @@ var LLS = (function (exports) {
 	    }
 	    saveBeepsToFile() {
 	        var _a;
-	        const beeps = this.settings.sortBeepsByMemberNumber
-	            ? this.sortBeepsByMemberNumber(FriendListBeepLog)
-	            : FriendListBeepLog;
+	        const beeps = this.settings.sortBeepsByMemberNumber ? this.sortBeepsByMemberNumber(FriendListBeepLog) : FriendListBeepLog;
 	        if (!beeps || beeps.length === 0) {
 	            console.warn("No beeps found to save.");
 	            return;
@@ -3239,15 +3253,8 @@ var LLS = (function (exports) {
 	        let lastMemberNumber = null;
 	        let otherName = null;
 	        const escapeCSV = (value) => `"${value.replace(/"/g, '""')}"`;
-	        if (format === 'csv') {
-	            lines.push([
-	                'Time',
-	                'Sender',
-	                'SenderID',
-	                'Recipient',
-	                'RecipientID',
-	                'Message'
-	            ].join(delimiter));
+	        if (format === "csv") {
+	            lines.push(["Time", "Sender", "SenderID", "Recipient", "RecipientID", "Message"].join(delimiter));
 	        }
 	        for (const beep of beeps) {
 	            const time = beep.Time ? new Date(beep.Time).toLocaleString() : "Unknown Time";
@@ -3256,7 +3263,7 @@ var LLS = (function (exports) {
 	            const sent = beep.Sent || false;
 	            if (lastMemberNumber == null || otherNumber !== lastMemberNumber) {
 	                otherName = beep.MemberName || "Unknown Sender";
-	                if (format === 'txt' && lastMemberNumber !== null) {
+	                if (format === "txt" && lastMemberNumber !== null) {
 	                    lines.push(""); // Only insert blank line in TXT format
 	                }
 	            }
@@ -3265,14 +3272,14 @@ var LLS = (function (exports) {
 	            const senderId = sent ? Player.MemberNumber : otherNumber;
 	            const recipientName = sent ? otherName : Player.Name;
 	            const recipientId = sent ? otherNumber : Player.MemberNumber;
-	            if (format === 'csv') {
+	            if (format === "csv") {
 	                lines.push([
 	                    escapeCSV(time),
 	                    escapeCSV(senderName || "Unknown"),
 	                    escapeCSV(String(senderId !== null && senderId !== void 0 ? senderId : "Unknown")),
 	                    escapeCSV(recipientName || "Unknown"),
 	                    escapeCSV(String(recipientId !== null && recipientId !== void 0 ? recipientId : "Unknown")),
-	                    escapeCSV(rawContent)
+	                    escapeCSV(rawContent),
 	                ].join(delimiter));
 	            }
 	            else {
@@ -3280,8 +3287,8 @@ var LLS = (function (exports) {
 	                lines.push(beepLine);
 	            }
 	        }
-	        const extension = format === 'csv' ? 'csv' : 'txt';
-	        const mimeType = format === 'csv' ? 'text/csv' : 'text/plain';
+	        const extension = format === "csv" ? "csv" : "txt";
+	        const mimeType = format === "csv" ? "text/csv" : "text/plain";
 	        const fileContent = lines.join("\n");
 	        this.saveFile(`beep_export.${extension}`, fileContent, mimeType);
 	    }
