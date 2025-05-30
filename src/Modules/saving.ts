@@ -111,9 +111,9 @@ export class SavingModule extends BaseModule {
                         );
                     } else {
                         if (sent) {
-                            lines.push(`${time} (You -> ${sender} (${userId})): ${content}`);
+                            lines.push(`${time} (You -> ${sender}): ${content}`);
                         } else {
-                            lines.push(`${time} (${sender} -> You): ${content}`);
+                            lines.push(`${time} (${sender} (${userId}) -> You): ${content}`);
                         }
                     }
                     break;
@@ -136,6 +136,7 @@ export class SavingModule extends BaseModule {
                 case "Activity":
                 case "Action":
                     const action = this.getOwnTextContent(message);
+                    if (action.includes("[NotifyPlus]")) break; // Skip NotifyPlus messages
                     if (action === "(Type /help for a list of commands)") {
                         break; // Skip help message
                     }
