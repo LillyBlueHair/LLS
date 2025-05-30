@@ -3261,7 +3261,7 @@ var LLS = (function (exports) {
 	        for (const beep of beeps) {
 	            const time = beep.Time ? new Date(beep.Time).toLocaleString() : "Unknown Time";
 	            const otherNumber = beep.MemberNumber || null;
-	            const rawContent = ((_a = beep.Message) === null || _a === void 0 ? void 0 : _a.replace(/\n\n\uF124\{.*?"messageType":"Message".*?\}/g, "")) || "";
+	            const rawContent = ((_a = beep.Message) === null || _a === void 0 ? void 0 : _a.replace(/\n\n\uF124\{.*?"messageType":".*?".*?\}/g, "")) || "";
 	            const sent = beep.Sent || false;
 	            if (lastMemberNumber == null || otherNumber !== lastMemberNumber) {
 	                otherName = beep.MemberName || "Unknown Sender";
