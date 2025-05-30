@@ -217,7 +217,7 @@ export class SavingModule extends BaseModule {
         for (const beep of beeps) {
             const time = beep.Time ? new Date(beep.Time).toLocaleString() : "Unknown Time";
             const otherNumber = beep.MemberNumber || null;
-            const rawContent = beep.Message?.replace(/\n\n\uF124\{.*?"messageType":"Message".*?\}/g, "") || "";
+            const rawContent = beep.Message?.replace(/\n\n\uF124\{.*?"messageType":".*?".*?\}/g, "") || "";
             const sent = beep.Sent || false;
 
             if (lastMemberNumber == null || otherNumber !== lastMemberNumber) {
