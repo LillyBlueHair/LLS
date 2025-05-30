@@ -3170,10 +3170,10 @@ var LLS = (function (exports) {
 	                    }
 	                    else {
 	                        if (sent) {
-	                            lines.push(`${time} (You -> ${sender} (${userId})): ${content}`);
+	                            lines.push(`${time} (You -> ${sender}): ${content}`);
 	                        }
 	                        else {
-	                            lines.push(`${time} (${sender} -> You): ${content}`);
+	                            lines.push(`${time} (${sender} (${userId}) -> You): ${content}`);
 	                        }
 	                    }
 	                    break;
@@ -3195,6 +3195,8 @@ var LLS = (function (exports) {
 	                case "Activity":
 	                case "Action":
 	                    const action = this.getOwnTextContent(message);
+	                    if (action.includes("[NotifyPlus]"))
+	                        break; // Skip NotifyPlus messages
 	                    if (action === "(Type /help for a list of commands)") {
 	                        break; // Skip help message
 	                    }
