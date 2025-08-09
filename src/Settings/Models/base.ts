@@ -14,6 +14,7 @@ export interface GlobalPublicSettingsModel extends BaseSettingsModel {
 
 export interface MiscSettingsModel extends BaseSettingsModel {
     orgasmSkip: boolean;
+    casinoButtons: boolean;
 }
 
 export interface CraftModel {

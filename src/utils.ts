@@ -1,6 +1,7 @@
 import bcModSDKRef, { GetDotedPathType, PatchHook } from "bondage-club-mod-sdk";
 import { getModule } from "modules";
 import { CoreModule } from "Modules/core";
+import { SettingsModel } from "Settings/Models/settings";
 import { ModuleCategory } from "Settings/settingDefinitions";
 
 interface IPatchedFunctionData {
@@ -85,18 +86,26 @@ export function sendLLSMessage(msg: LLSMessageModel) {
     ServerSend("ChatRoomChat", packet);
 }
 
-export function sendHiddenMessage(msg: LLSMessageModel) {
-    const packet = <IChatRoomMessage>{
-        Type: "Hidden",
-        Content: "LLSMsg",
-        Sender: Player.MemberNumber,
-        Dictionary: [
-            <LLSMessageDictionaryEntry>{
-                message: msg,
-            },
-        ],
-    };
-
+export function sendHiddenMessage(msg: LLSMessageModel | string) {
+    let packet: IChatRoomMessage;
+    if (typeof msg === "string") {
+        packet = <IChatRoomMessage>{
+            Type: "Hidden",
+            Content: msg,
+            Sender: Player.MemberNumber,
+        };
+    } else {
+        packet = <IChatRoomMessage>{
+            Type: "Hidden",
+            Content: "LLSMsg",
+            Sender: Player.MemberNumber,
+            Dictionary: [
+                <LLSMessageDictionaryEntry>{
+                    message: msg,
+                },
+            ],
+        };
+    }
     ServerSend("ChatRoomChat", packet);
 }
 
@@ -390,11 +399,62 @@ export function patchFunction(target: string, patches: Record<string, string | n
     //TODO
 }
 
+let savingFlag: number = 0;
+let savingPublishFlag: boolean = false;
+
 export function settingsSave(publish: boolean = false) {
-    if (!Player.OnlineSettings) Player.OnlineSettings = <PlayerOnlineSettings>{};
-    Player.OnlineSettings.LLS = Player.LLS;
-    window.ServerAccountUpdate.QueueData({ OnlineSettings: Player.OnlineSettings });
-    if (publish) getModule<CoreModule>("CoreModule")?.sendPublicPacket(false, "sync");
+    if (!Player.ExtensionSettings) Player.ExtensionSettings = <ExtensionSettings>{};
+    Player.ExtensionSettings.LLS = LZString.compressToBase64(JSON.stringify(Player.LLS));
+    localStorage.setItem(`LLS_${Player.MemberNumber}_Backup`, Player.ExtensionSettings.LLS);
+
+    try {
+        let cleaned = CleanDefaultsFromSettings(Player.LLS);
+        let cleanedAndCompressed = LZString.compressToBase64(JSON.stringify(cleaned));
+    } catch (error) {
+        console.debug(`Error during experimental clean: ${error}`);
+    }
+
+    savingPublishFlag = savingPublishFlag || publish;
+    if (!savingFlag) {
+        savingFlag = setTimeout(() => {
+            ServerPlayerExtensionSettingsSync("LLS");
+            if (savingPublishFlag) {
+                getModule<CoreModule>("CoreModule")?.sendPublicPacket(false, "sync");
+            }
+            clearTimeout(savingFlag);
+            savingPublishFlag = false;
+            savingFlag = 0;
+        }, 1000);
+    }
+}
+
+export function CleanDefaultsFromSettings(settings: SettingsModel): SettingsModel {
+    let newObj = JSON.parse(JSON.stringify(settings));
+    Object.keys(newObj).forEach((key) => {
+        let defaultModule = getModule(key);
+        let settingModule = (<any>newObj)[key];
+        if (!!defaultModule) {
+            let defaults = defaultModule.defaultSettings as any;
+            _compareAndTrimObjects(defaults, settingModule);
+        }
+    });
+    return newObj;
+}
+
+function _compareAndTrimObjects(defaults: any, settings: any) {
+    if (!defaults || !settings) return;
+    Object.keys(defaults).forEach((dk) => {
+        let defaultVal = defaults[dk];
+        let settingVal = settings[dk];
+        if (!Array.isArray(settingVal)) {
+            if (typeof defaultVal === "number") settingVal = parseInt(settings[dk]);
+
+            if (typeof settingVal === "object") _compareAndTrimObjects(defaultVal, settingVal);
+            else if (defaultVal === settingVal) delete settings[dk];
+        } else if (JSON.stringify(defaultVal) === JSON.stringify(settingVal)) {
+            delete settings[dk];
+        }
+    });
 }
 
 /** Checks if the `obj` is an object (not null, not array) */
