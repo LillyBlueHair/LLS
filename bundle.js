@@ -143,16 +143,26 @@ var LLS = (function (exports) {
 	    ServerSend("ChatRoomChat", packet);
 	}
 	function sendHiddenMessage(msg) {
-	    const packet = {
-	        Type: "Hidden",
-	        Content: "LLSMsg",
-	        Sender: Player.MemberNumber,
-	        Dictionary: [
-	            {
-	                message: msg,
-	            },
-	        ],
-	    };
+	    let packet;
+	    if (typeof msg === "string") {
+	        packet = {
+	            Type: "Hidden",
+	            Content: msg,
+	            Sender: Player.MemberNumber,
+	        };
+	    }
+	    else {
+	        packet = {
+	            Type: "Hidden",
+	            Content: "LLSMsg",
+	            Sender: Player.MemberNumber,
+	            Dictionary: [
+	                {
+	                    message: msg,
+	                },
+	            ],
+	        };
+	    }
 	    ServerSend("ChatRoomChat", packet);
 	}
 	function sendLocal(msg, time) {
@@ -394,14 +404,64 @@ var LLS = (function (exports) {
 	    bcModSDK.patchFunction(target, patches);
 	    //TODO
 	}
+	let savingFlag = 0;
+	let savingPublishFlag = false;
 	function settingsSave(publish = false) {
-	    var _a;
-	    if (!Player.OnlineSettings)
-	        Player.OnlineSettings = {};
-	    Player.OnlineSettings.LLS = Player.LLS;
-	    window.ServerAccountUpdate.QueueData({ OnlineSettings: Player.OnlineSettings });
-	    if (publish)
-	        (_a = getModule("CoreModule")) === null || _a === void 0 ? void 0 : _a.sendPublicPacket(false, "sync");
+	    if (!Player.ExtensionSettings)
+	        Player.ExtensionSettings = {};
+	    Player.ExtensionSettings.LLS = LZString.compressToBase64(JSON.stringify(Player.LLS));
+	    localStorage.setItem(`LLS_${Player.MemberNumber}_Backup`, Player.ExtensionSettings.LLS);
+	    try {
+	        let cleaned = CleanDefaultsFromSettings(Player.LLS);
+	        let cleanedAndCompressed = LZString.compressToBase64(JSON.stringify(cleaned));
+	    }
+	    catch (error) {
+	        console.debug(`Error during experimental clean: ${error}`);
+	    }
+	    savingPublishFlag = savingPublishFlag || publish;
+	    if (!savingFlag) {
+	        savingFlag = setTimeout(() => {
+	            var _a;
+	            ServerPlayerExtensionSettingsSync("LLS");
+	            if (savingPublishFlag) {
+	                (_a = getModule("CoreModule")) === null || _a === void 0 ? void 0 : _a.sendPublicPacket(false, "sync");
+	            }
+	            clearTimeout(savingFlag);
+	            savingPublishFlag = false;
+	            savingFlag = 0;
+	        }, 1000);
+	    }
+	}
+	function CleanDefaultsFromSettings(settings) {
+	    let newObj = JSON.parse(JSON.stringify(settings));
+	    Object.keys(newObj).forEach((key) => {
+	        let defaultModule = getModule(key);
+	        let settingModule = newObj[key];
+	        if (!!defaultModule) {
+	            let defaults = defaultModule.defaultSettings;
+	            _compareAndTrimObjects(defaults, settingModule);
+	        }
+	    });
+	    return newObj;
+	}
+	function _compareAndTrimObjects(defaults, settings) {
+	    if (!defaults || !settings)
+	        return;
+	    Object.keys(defaults).forEach((dk) => {
+	        let defaultVal = defaults[dk];
+	        let settingVal = settings[dk];
+	        if (!Array.isArray(settingVal)) {
+	            if (typeof defaultVal === "number")
+	                settingVal = parseInt(settings[dk]);
+	            if (typeof settingVal === "object")
+	                _compareAndTrimObjects(defaultVal, settingVal);
+	            else if (defaultVal === settingVal)
+	                delete settings[dk];
+	        }
+	        else if (JSON.stringify(defaultVal) === JSON.stringify(settingVal)) {
+	            delete settings[dk];
+	        }
+	    });
 	}
 	/** Checks if the `obj` is an object (not null, not array) */
 	function isObject(obj) {
@@ -964,15 +1024,8 @@ var LLS = (function (exports) {
 	                type: "checkbox",
 	                label: "LLS enabled:",
 	                description: "Enables Lilly's Little Scripts.",
-	                setting: () => { var _a; return (_a = Player.LLS.GlobalModule.enabled) !== null && _a !== void 0 ? _a : false; },
-	                setSetting: (val) => Player.LLS.GlobalModule.enabled = val
-	            },
-	            {
-	                type: "checkbox",
-	                label: "Automatically resist orgasms:",
-	                description: "Enables the button to immediately resist orgasms.",
-	                setting: () => { var _a; return (_a = this.settings.orgasmSkip) !== null && _a !== void 0 ? _a : false; },
-	                setSetting: (val) => this.settings.orgasmSkip = val
+	                setting: () => { var _a; return (_a = this.settings.enabled) !== null && _a !== void 0 ? _a : false; },
+	                setSetting: (val) => this.settings.enabled = val
 	            }
 	        ];
 	    }
@@ -1767,6 +1820,37 @@ var LLS = (function (exports) {
 	    }
 	}
 
+	class GuiMisc extends GuiSubscreen {
+	    get name() {
+	        return "Miscellaneous";
+	    }
+	    get settings() {
+	        return super.settings;
+	    }
+	    get structure() {
+	        return [
+	            {
+	                type: "checkbox",
+	                label: "Automatically resist orgasms:",
+	                description: "Enables the button to immediately resist orgasms.",
+	                setting: () => { var _a; return (_a = this.settings.orgasmSkip) !== null && _a !== void 0 ? _a : false; },
+	                setSetting: (val) => this.settings.orgasmSkip = val
+	            },
+	            {
+	                type: "checkbox",
+	                label: "Casino buttons:",
+	                description: "Enables the casino buttons.",
+	                setting: () => { var _a; return (_a = this.settings.casinoButtons) !== null && _a !== void 0 ? _a : false; },
+	                setSetting: (val) => this.settings.casinoButtons = val
+	            }
+	        ];
+	    }
+	    Load() {
+	        // Load up module settings to ensure defaults..
+	        super.Load();
+	    }
+	}
+
 	class MiscModule extends BaseModule {
 	    get settings() {
 	        return super.settings;
@@ -1774,7 +1858,11 @@ var LLS = (function (exports) {
 	    get defaultSettings() {
 	        return {
 	            orgasmSkip: false,
+	            casinoButtons: false,
 	        };
+	    }
+	    get settingsScreen() {
+	        return GuiMisc;
 	    }
 	    Safeword() { }
 	    Load() {
@@ -1819,6 +1907,65 @@ var LLS = (function (exports) {
 	        patchFunction("DrawRoomBackground", {
 	            'const img = URL !== "" ? DrawGetImage(URL) : undefined;': 'const img = URL !== "" ? DrawGetImage(URL) : undefined;\n\t\tif(img) img.crossOrigin = "anonymous";',
 	        });
+	        hookFunction("ChatRoomClick", 4, (args, next) => {
+	            if (!this.Enabled)
+	                return;
+	            if (this.settings.casinoButtons) {
+	                if (MouseX >= 955 && MouseX <= 1005 && MouseY >= 370 && MouseY <= 420) {
+	                    let bet = parseInt(ElementValue("bet"));
+	                    if (isNaN(bet) || bet <= 0) {
+	                        sendLocal("Invalid bet amount.");
+	                        return;
+	                    }
+	                    sendHiddenMessage("ChatRoomBot bet " + bet);
+	                    return;
+	                }
+	                if (MouseX >= 955 && MouseX <= 1005 && MouseY >= 480 && MouseY <= 530) {
+	                    sendHiddenMessage("ChatRoomBot hit");
+	                    return;
+	                }
+	                if (MouseX >= 955 && MouseX <= 1005 && MouseY >= 535 && MouseY <= 585) {
+	                    sendHiddenMessage("ChatRoomBot stand");
+	                    return;
+	                }
+	                if (MouseX >= 955 && MouseX <= 1005 && MouseY >= 590 && MouseY <= 640) {
+	                    sendHiddenMessage("ChatRoomBot double");
+	                    return;
+	                }
+	                if (MouseX >= 955 && MouseX <= 1005 && MouseY >= 645 && MouseY <= 695) {
+	                    sendHiddenMessage("ChatRoomBot split");
+	                    return;
+	                }
+	                if (MouseX >= 955 && MouseX <= 1005 && MouseY >= 710 && MouseY <= 760) {
+	                    sendHiddenMessage("ChatRoomBot chips");
+	                    return;
+	                }
+	            }
+	            next(args);
+	        });
+	        hookFunction("ChatRoomMenuDraw", 4, (args, next) => {
+	            if (!this.Enabled)
+	                return;
+	            if (this.settings.casinoButtons && (ChatRoomData === null || ChatRoomData === void 0 ? void 0 : ChatRoomData.Name) === "Cotton Candy Casino" && CurrentScreen === "ChatRoom") {
+	                DrawButton(955, 370, 50, 50, "Bet", "White");
+	                if (CurrentModule === "Online") {
+	                    ElementCreateInput("bet", "number", "1");
+	                    ElementPosition("bet", 955, 450, 100, 50);
+	                }
+	                else {
+	                    ElementRemove("bet");
+	                }
+	                DrawButton(955, 480, 50, 50, "Hit", "White");
+	                DrawButton(955, 535, 50, 50, "Stand", "White");
+	                DrawButton(955, 590, 50, 50, "Double", "White");
+	                DrawButton(955, 645, 50, 50, "Split", "White");
+	                DrawButton(955, 710, 50, 50, "Chips", "White");
+	            }
+	            else {
+	                ElementRemove("bet");
+	            }
+	            next(args);
+	        });
 	    }
 	    characterToggleVisibility(mode, C) {
 	        let script = InventoryWear(C, "Script", "ItemScript");
@@ -1826,12 +1973,10 @@ var LLS = (function (exports) {
 	            return;
 	        script.Property = script.Property || {};
 	        if (mode === "bodyOnly") {
-	            script.Property.Hide = AssetGroup
-	                .filter(g => g.Category === "Appearance" && !g.Clothing && !["Height", "Emoticon", "Pronouns"]
-	                .includes(g.Name)).map(g => g.Name);
+	            script.Property.Hide = AssetGroup.filter((g) => g.Category === "Appearance" && !g.Clothing && !["Height", "Emoticon", "Pronouns"].includes(g.Name)).map((g) => g.Name);
 	        }
 	        else if (mode === "all") {
-	            script.Property.Hide = AssetGroup.map(g => g.Name).filter(gn => gn !== "ItemScript");
+	            script.Property.Hide = AssetGroup.map((g) => g.Name).filter((gn) => gn !== "ItemScript");
 	        }
 	        else {
 	            InventoryRemove(C, "ItemScript", true);
